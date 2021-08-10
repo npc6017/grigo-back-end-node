@@ -1,0 +1,31 @@
+const passport = require('passport');
+const { Strategy: LocalStrategy } = require('passport-local');
+const bcrypt = require('bcrypt');
+const { Account } = require('../models');
+
+module.exports = () => {
+    passport.use(new LocalStrategy({
+        usernameField: 'email',
+        passwordField: 'password',
+    }, async (email, password, done) => {
+        try {
+            const account = await Account.findOne({
+                where: { email: email }
+            });
+            // Password Compare
+            const result = await bcrypt.compare(password, account.password);
+            // Account가 존재하지 않거나, 비밀번호가 틀린 경우.
+            if(!account || !result) {
+                return done(null, false, { reason: '이메일 또는 비밀번호가 틀립니다.' });
+            }
+            // Account가 존재하는 경우,
+            if(result) {
+                return done(null, account);
+            }
+        }catch (error) {
+            console.error(error);
+            return done(error);
+        }
+
+    }));
+}
