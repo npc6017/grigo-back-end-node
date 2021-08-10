@@ -6,6 +6,7 @@ const passportConfig = require('./passport');
 const app = express();
 
 const accountRouter = require('./routes/account');
+const tagRouter = require('./routes/tag');
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/', accountRouter);
+app.use('/tag', tagRouter);
 
 app.listen(3065, () => {
     console.log("3065 Port Opened")

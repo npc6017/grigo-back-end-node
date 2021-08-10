@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 
 dotenv.config();
 
+/** Create Json Wen Token, Method */
 const createJWT = (email) => {
     return jwt.sign({
         email: email,
@@ -19,7 +20,7 @@ const createJWT = (email) => {
     });
 }
 
-/** Login Post
+/** Login, Post
  * Context-type : application/json
  * */
 router.post('/login', async (req, res, next) => {
@@ -51,7 +52,7 @@ router.post('/login', async (req, res, next) => {
     })(req, res, next);
 });
 
-/** Join Post
+/** Join, Post
  * Context-type : application/json
  * */
 router.post('/join', async (req, res, next) => {
