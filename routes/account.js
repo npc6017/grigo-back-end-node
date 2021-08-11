@@ -168,14 +168,14 @@ router.post('/settings/password', passport.authenticate("jwt", {session: false})
     try{
         // 기존 비밀번호 체크
         const isDBpw = await Account.findOne({where: { id: req.user.id}});
-        const isCheckBasic = await bcrypt.compare(req.body.curPassword, isDBpw.password);
+        const isCheckBasic = await bcrypt.compare(req.body.currentPassword, isDBpw.password);
 
         // 변경 불허!
         if(!isCheckBasic)
             return res.status(400).json({status : 400, errormessage: "비밀번호가 일치하지 않습니다."});
 
         // 새로운 비밀번호와 확인 비밀번호 체크
-        if(!(req.body.newPassword == req.body.newConfirmPassword))
+        if(!(req.body.newPassword == req.body.newPasswordConfirm))
             return res.status(400).json({status : 400, errormessage: "새로운 비밀번호가 일치하지 않습니다."});
 
         // 모든 검증 통과, 변경 진행
