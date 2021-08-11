@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router();
-const { Account, Notification, Post } = require('../models');
+const { Account, Notification, Post, AccountTag, Tag } = require('../models');
 const passport = require('passport');
 const bcrypt = require('bcrypt');
 const dotenv = require('dotenv');
@@ -19,6 +19,32 @@ const createJWT = (email) => {
         issuer: process.env.USER,
     });
 }
+
+/** Profile, Get */
+router.get('/profile', passport.authenticate("jwt", {session: false}), async (req, res, next) => {
+    try{
+        const account = await Account.findOne({
+            where: { id : req.user.id},
+            include: [{
+                model: AccountTag,
+                include: [Tag]
+            }],
+            attributes: { exclude: ['id', 'password', 'checkNotice', 'createdAt', 'updatedAt']}
+        });
+        if(!account)
+            return res.status(400).send('잘못된 접근입니다.');
+
+        // Tag Obj -> str[]
+        const stringTag = account.AccountTags.map((accountTag) =>  accountTag.Tag.name )
+
+        // ProfileDTO
+        const profileDTO = { email: account.email, name: account.name, student_id: account.studentId, phone: account.phone, birth: account.birth, sex: account.sex, tags: stringTag,}
+        res.status(200).json(profileDTO);
+    }catch(error){
+        console.error(error);
+        next(error);
+    }
+});
 
 /** Login, Post
  * Content-type : application/json
