@@ -168,7 +168,7 @@ router.post('/settings/password', passport.authenticate("jwt", {session: false})
     try{
         // 기존 비밀번호 체크
         const isDBpw = await Account.findOne({where: { id: req.user.id}});
-        const isCheckBasic = await bcrypt.compare(req.body.password, isDBpw.password);
+        const isCheckBasic = await bcrypt.compare(req.body.curPassword, isDBpw.password);
 
         // 변경 불허!
         if(!isCheckBasic)
