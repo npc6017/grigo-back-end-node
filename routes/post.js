@@ -103,8 +103,8 @@ router.get('/board', passport.authenticate('jwt', {session: false}), async (req,
     }
 });
 
-/** Update Post, Post // TODO TAGS UPDATE!!!
- * content-Type
+/** Update Post, Post
+ * content-Type : application/json
  * */
 router.post('/:postId/update', passport.authenticate('jwt', {session: false}),
     async (req, res, next) => {
@@ -124,7 +124,30 @@ router.post('/:postId/update', passport.authenticate('jwt', {session: false}),
                 where: { id: exPost.id}
             })
             // ToDo Tags Update
-
+            /// 삭제할 태그 처리
+            const deleteTagsObj = await Promise.all(req.body.deletedTags.map((deletedTag) =>
+                Tag.findOne({where: { name: deletedTag}})
+            ));
+            // 글의 태그가 비어있지 않을 때, 삭체 처리 진행.
+            await Promise.all(deleteTagsObj.map((deleteTagObj) => {
+                if(deleteTagObj != null)
+                    PostTag.destroy({where: {PostId: exPost.id, TagId: deleteTagObj.id}});
+            }))
+            /// 추가할 태그 처리
+            const getTags = req.body.addTags;
+            if(getTags) {
+                // Tag name으로 태그 찾아오기 (Tag의 id가 필요하기 때문이다.)
+                const result = await Promise.all(getTags.map(async (tag) => await Tag.findOrCreate({where: {name: tag},})))
+                // Tag를 모두 돌며 PostTag에 등록하기
+                await Promise.all(result.map( async (tag) => {
+                    await PostTag.findOrCreate({
+                        where: {
+                            PostId: exPost.id,
+                            TagId: tag[0].id,
+                        }
+                    });
+                }))
+            }
             res.status(200).send("post update succesful");
         }catch (error){
             console.log(error);
