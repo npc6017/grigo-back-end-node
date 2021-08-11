@@ -26,15 +26,19 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(20),
             allowNull: true,
         },
+        checkNotice:{
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
+        }
     }, {
         charset: 'utf8',
         collate: 'utf8_general_ci',
     });
     Account.associate = (db) => {
         db.Account.hasMany(db.Post);
-        db.Account.belongsToMany(db.Tag, { through: "AccountTag"});
         db.Account.hasMany(db.Comment);
-        db.Account.belongsToMany(db.Post, {through: "Notification"})
+        db.Account.hasMany(db.Notification);
+        db.Account.hasMany(db.AccountTag);
     }
     return Account;
 };

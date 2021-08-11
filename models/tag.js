@@ -14,8 +14,8 @@ module.exports = (sequelize, DataTypes) => {
         collate: 'utf8mb4_general_ci',
     });
     Tag.associate = (db) => {
-        db.Tag.belongsToMany(db.Account, { through: 'AccountTag' });
-        db.Tag.belongsToMany(db.Post, { through: 'PostTag' });
+        db.Tag.hasMany(db.PostTag);
+        db.Tag.hasMany(db.AccountTag);
     }
     return Tag;
 }

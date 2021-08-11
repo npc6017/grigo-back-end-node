@@ -7,7 +7,10 @@ const sequelize = new Sequelize(config.database, config.username, config.passwor
 
 db.Account = require('./account')(sequelize, Sequelize);
 db.Post = require('./post')(sequelize, Sequelize);
+db.Notification = require('./Notification')(sequelize, Sequelize);
 db.Tag = require('./tag')(sequelize, Sequelize);
+db.AccountTag = require('./AccountTag')(sequelize, Sequelize);
+db.PostTag = require('./PostTag')(sequelize, Sequelize);
 db.Comment = require('./comment')(sequelize, Sequelize);
 
 // 각 모델에서 설정한 associate 연결
