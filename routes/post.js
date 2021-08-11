@@ -1,7 +1,8 @@
 const express = require('express')
 const router = express.Router();
 const passport = require('passport')
-const { Post, Tag, PostTag, AccountTag, Notification, Account } = require('../models');
+const { Post, Tag, PostTag, AccountTag, Notification, Account, Comment } = require('../models');
+const { Op } = require('sequelize');
 
 /** Save Post, Post
  * Content-type : application/json
@@ -58,7 +59,51 @@ router.post('/save', passport.authenticate(`jwt`, {session: false}),
         }
     });
 
-/** Update Post, Post
+/** Get Posts(Pagination), Get */
+router.get('/board', passport.authenticate('jwt', {session: false}), async (req, res, next) => {
+    try {// id, size, type
+        // where 조건을 미리 정의.
+        const where = { boardType: req.query.type };
+        if(parseInt(req.query.id, 10)) {
+            // Op.lt: 5 -> 5보다 작은 것들 / where.id 이므로 id가 5보다 작은 것들!
+            // 만약 10개인데 100보다 작은 것을 요청하면 10부터 가져온다.
+            // 개수는 아래 limit으로 설정
+            where.id = { [Op.lt]: parseInt(req.query.id, 10)}
+        }
+        const posts = await Post.findAll({
+            where,
+            limit: req.query.size,
+            order: [['createdAt', 'DESC']], // 최신 게시글부터
+            include: [Account],
+            attributes: { exclude: ['updatedAt']}
+        });
+
+        // 다음 데이터가 있는지 여부 확인
+        const hasNext = posts.length == 0 ? false : true;
+
+        const postDTOS = await Promise.all(posts.map((post) => {
+            return {
+                id: post.id,
+                title: post.title,
+                writer: post.Account.name,
+                content: post.content,
+                boardType: post.boardType,
+                tags: null,
+                comments: null,
+                timeStamp: post.createdAt,
+                userCheck: post.Account.id == req.user.id
+            }
+        }))
+        result = {postsDTOS: postDTOS, hasNext: hasNext}
+
+        res.status(200).json(result);
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+});
+
+/** Update Post, Post // TODO TAGS UPDATE!!!
  * content-Type
  * */
 router.post('/:postId/update', passport.authenticate('jwt', {session: false}),
@@ -107,27 +152,41 @@ router.post('/:postId/delete', passport.authenticate('jwt', {session: false}), a
     }
 });
 
+
 /** Get Post, Get */
 router.get('/:postId', passport.authenticate('jwt', {session: false}), async (req, res, next) => {
     try{
-        const post = await Post.findOne({where: { id: req.params.postId },
-        include: [Account, PostTag]});
+        const post = await Post.findOne({
+            where: { id: req.params.postId },
+            include: [{ model: Account }, { model: PostTag}, { model: Comment, attributes: { exclude: ['updatedAt', 'PostId']} }],
+        });
         if(!post)
             return res.status(404).send("요청 정보를 확인하시기 바랍니다.");
         // TagId를 통해 tag객체들 가져오기
         const tags = await Promise.all(post.PostTags.map((postTag) => Tag.findOne({where: { id: postTag.TagId}})))
         // Tag의 name만 추출.
         const stringTags = tags.map((tag) => tag.name);
+        // 나의 글인지 판단
+        const isMyPost =  post.Account.id == req.user.id;
+        // 댓글DTO 만들기
+        const commentDTOS = await Promise.all((post.Comments.map( async (comment) => {
+            // Account 이름 가져오기
+            const cmtAccount = await Account.findOne({where: { id: comment.AccountId }});
+            // 나의 댓글인치 확인
+            const isMyComment = comment.AccountId == req.user.id;
+            return { id: comment.id, content: comment.content, writer: cmtAccount.name, timestamp: comment.createdAt, userCheck: isMyComment }
+        })));
 
-        // DTO 만들기
+        // PostDTO 만들기
         const result = {
             id: post.id,
             title: post.title,
-            writer: post.Account.email,
+            writer: post.Account.name,
             content: post.content,
             boardType: post.boardType,
             tag: stringTags,
-            comment : null,
+            comment : commentDTOS,
+            userCheck: isMyPost,
             timestamp: post.createdAt,
         }
 
@@ -137,4 +196,6 @@ router.get('/:postId', passport.authenticate('jwt', {session: false}), async (re
         next(error);
     }
 })
+
+
 module.exports = router;
