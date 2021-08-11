@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router();
-const { Account } = require('../models');
+const { Account, Notification, Post } = require('../models');
 const passport = require('passport');
 const bcrypt = require('bcrypt');
 const dotenv = require('dotenv');
@@ -21,7 +21,7 @@ const createJWT = (email) => {
 }
 
 /** Login, Post
- * Context-type : application/json
+ * Content-type : application/json
  * */
 router.post('/login', async (req, res, next) => {
     passport.authenticate('local', (err, user, info) => {
@@ -53,7 +53,7 @@ router.post('/login', async (req, res, next) => {
 });
 
 /** Join, Post
- * Context-type : application/json
+ * Content-type : application/json
  * */
 router.post('/join', async (req, res, next) => {
     try {
@@ -92,4 +92,48 @@ router.post('/join', async (req, res, next) => {
     }
 });
 
+/** 알람 읽음 요청*/
+router.get('/notification/:postId', passport.authenticate('jwt', {session: false}), async (req, res, next) => {
+    try{
+        const isRead = await Notification.destroy({
+            where: { AccountId: req.user.id, PostId: req.params.postId},
+        }) // 알림 읽음 처리 여부
+
+        const cnt = await Notification.count({
+            where: { AccountId: req.user.id, PostId: req.params.postId},
+        })
+        if(cnt == 0) { // 더 이상 알림이 존재하지 않으면, Account의 checkNotice를 false로 설정
+            await Account.update({
+                checkNotice: false,
+            }, { where: { id: req.user.id}})
+        }
+
+        if(isRead) { // 알림 읽음 처리가 True이면, Accou
+            return res.status(200).send("알림이 읽음 처리 되었습니다.");
+        }
+        res.status(403).send("요청을 확인하세요.");
+    }catch (error){
+        console.error(error);
+        next(error)
+    }
+})
+
+/** 알람 갱신 요청 */
+router.get('/notification', passport.authenticate('jwt', {session: false}), async (req, res, next) => {
+    try{
+        const myNotification = await Notification.findAll({where: {AccountId: req.user.id}})
+        const posts = await Promise.all(myNotification.map((noti) => Post.findOne({where: { id: noti.PostId }})))
+        const result = [];
+        myNotification.map((a, i) => {
+            result.push({id: a.id, postId: posts[i].id, title: posts[i].title});
+        })
+        if(!myNotification){
+           return res.status(404).json({id: null, postId: null, title: null});
+        }
+        res.status(200).json(result);
+    }catch (error){
+        console.error(error);
+        next(error);
+    }
+})
 module.exports = router;
