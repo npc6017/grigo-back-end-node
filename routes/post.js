@@ -18,8 +18,8 @@ router.post('/save', passport.authenticate(`jwt`, {session: false}),
                 AccountId: req.user.id,
             });
             // tag name으로 Tag객체를 받아서 Post에 넣기
-            const tags = await Promise.all(req.body.tag.map((tag) => Tag.findOne({where: {name : tag},})));
-            await Promise.all(tags.map((tag) =>
+            const tagsObj = await Promise.all(req.body.tags.map((tag) => Tag.findOne({where: {name : tag},})));
+            await Promise.all(tagsObj.map((tag) =>
                 PostTag.findOrCreate({
                     where: {
                         PostId: savedPost.id,
@@ -32,7 +32,7 @@ router.post('/save', passport.authenticate(`jwt`, {session: false}),
                 // 알림 설정하기(Notification 생성)
 
                 /// Tag를 가지고 있는 account 가져오기,
-            const accounts = await Promise.all(tags.map((tag) =>
+            const accounts = await Promise.all(tagsObj.map((tag) =>
                     AccountTag.findAll({
                         where: { TagId: tag.id }
                     })
