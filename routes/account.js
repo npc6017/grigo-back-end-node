@@ -65,15 +65,39 @@ router.post('/login', async (req, res, next) => {
             const accountWithOutPw = await Account.findOne({
                 where: { id: user.id},
                 attributes:{
-                    exclude: ['password'],
+                    exclude: ['password', 'createdAt', 'updatedAt'],
                 },
             });
             // TODO Tag 가져오는 코드 작성
+            const tags = await AccountTag.findAll({where: { AccountId: accountWithOutPw.id }});
+            const stringTags = await Promise.all(tags.map( async (tag) => {
+                   const stringTag = await Tag.findOne({where: {id: tag.TagId}})
+                    return stringTag.name;
+                }
+            ));
+
+            // DTO 생성
+            const result = {
+                id: accountWithOutPw.id,
+                email: accountWithOutPw.email,
+                name: accountWithOutPw.name,
+                student_id: accountWithOutPw.studentId,
+                phone: accountWithOutPw.phone,
+                birth: accountWithOutPw.birth,
+                sex: accountWithOutPw.sex,
+                tags: stringTags,
+                checkNotice: accountWithOutPw.checkNotice,
+            }
+            /// Tag가 없으면 213, 있으면 214
+            if(stringTags.length == 0)
+                res.status(214);
+            else
+                res.status(213);
 
             // JWT 생성
             const token = createJWT(accountWithOutPw.email);
-            res.setHeader("Authorization",`Bearer ${token}`);
-            return res.status(200).json(accountWithOutPw);
+            res.setHeader("Authorization",`bearer ${token}`);
+            res.json(result); /// 200 -> 214
         })
     })(req, res, next);
 });
@@ -92,7 +116,7 @@ router.post('/join', async (req, res, next) => {
         }
         /** 학번 중복 체크 */
         const exStuNum = await Account.findOne({
-            where: { studentId: req.body.studentId },
+            where: { studentId: req.body.student_id },/// studentId -> student_Id
         })
         if(exStuNum){
             return res.json({status: 404, errorMessage: "이미 가입되어 있는 학번입니다."});
@@ -105,7 +129,7 @@ router.post('/join', async (req, res, next) => {
             password: hashPW,
             name: req.body.name,
             birth: req.body.birth,
-            studentId: req.body.studentId, // studentId -> student_Id
+            studentId: req.body.student_id, /// studentId -> student_id
             sex: req.body.sex,
             phone: req.body.phone,
         });
@@ -203,18 +227,21 @@ router.post('/settings/profile', passport.authenticate('jwt', {session: false}),
         }, { where: { id: req.user.id }});
         // 사용자 태크 정보 변경
         /// 삭제할 태그 처리
-        const deleteTagsObj = await Promise.all(req.body.deletedTags.map((deletedTag) =>
-             Tag.findOne({where: { name: deletedTag}})
-        ));
-        // 사용자의 태그가 비어있지 않을 때, 삭체 처리 진행.
-        await Promise.all(deleteTagsObj.map((deleteTagObj) => {
-            if(deleteTagObj != null)
-                AccountTag.destroy({where: {AccountId: req.user.id, TagId: deleteTagObj.id}});
-        }))
+        if(req.body.deleteTags != undefined) { // deletedTags -> deleteTags, undefined는 클라이언트에서 안보내는 경우임
+            const deleteTagsObj = await Promise.all(req.body.deleteTags.map((deletedTag) =>
+                Tag.findOne({where: {name: deletedTag}})
+            ));
+            console.log(deleteTagsObj);
+            // 사용자의 태그가 비어있지 않을 때, 삭체 처리 진행.
+            await Promise.all(deleteTagsObj.map((deleteTagObj) => {
+                if (deleteTagObj != null)
+                    AccountTag.destroy({where: {AccountId: req.user.id, TagId: deleteTagObj.id}});
+            }))
+        }
 
         /// 추가할 태그 처리
         const getTags = req.body.addTags;
-        if(getTags) {
+        if(getTags != undefined) {
             // Tag name으로 태그 찾아오기 (Tag의 id가 필요하기 때문이다.)
             const result = await Promise.all(getTags.map(async (tag) => await Tag.findOrCreate({where: {name: tag},})))
             // Tag를 모두 돌며 AccountTag에 등록하기
