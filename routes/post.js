@@ -74,27 +74,34 @@ router.get('/board', passport.authenticate('jwt', {session: false}), async (req,
             where,
             limit: req.query.size,
             order: [['createdAt', 'DESC']], // 최신 게시글부터
-            include: [Account],
+            include: [Account, {
+                model: PostTag, include : {
+                    model: Tag
+                }
+            }],
             attributes: { exclude: ['updatedAt']}
         });
 
         // 다음 데이터가 있는지 여부 확인
         const hasNext = posts.length == 0 ? false : true;
 
-        const postDTOS = await Promise.all(posts.map((post) => {
+        const postDTOS = await Promise.all(posts.map(async (post) => {
+            const stringTags = post.PostTags.map((tag) => {
+                return tag.Tag.name;
+            })
             return {
                 id: post.id,
                 title: post.title,
                 writer: post.Account.name,
                 content: post.content,
                 boardType: post.boardType,
-                tags: null,
-                comments: null,
+                tags: stringTags,
+                comments: null, // 필요 없음
                 timeStamp: post.createdAt,
                 userCheck: post.Account.id == req.user.id
             }
         }))
-        result = {postsDTOS: postDTOS, hasNext: hasNext}
+        result = {postDTOS: postDTOS, hasNext: hasNext} /// postsDTOS -> postDTOS
 
         res.status(200).json(result);
     } catch (error) {
@@ -125,21 +132,24 @@ router.post('/:postId/update', passport.authenticate('jwt', {session: false}),
             })
             // ToDo Tags Update
             /// 삭제할 태그 처리
-            const deleteTagsObj = await Promise.all(req.body.deletedTags.map((deletedTag) =>
-                Tag.findOne({where: { name: deletedTag}})
-            ));
-            // 글의 태그가 비어있지 않을 때, 삭체 처리 진행.
-            await Promise.all(deleteTagsObj.map((deleteTagObj) => {
-                if(deleteTagObj != null)
-                    PostTag.destroy({where: {PostId: exPost.id, TagId: deleteTagObj.id}});
-            }))
+            if(req.body.deletedTags != undefined){
+                const deleteTagsObj = await Promise.all(req.body.deletedTags.map((deletedTag) =>
+                    Tag.findOne({where: { name: deletedTag}})
+                ));
+                // 글의 태그가 비어있지 않을 때, 삭체 처리 진행.
+                await Promise.all(deleteTagsObj.map((deleteTagObj) => {
+                    if(deleteTagObj != null)
+                        PostTag.destroy({where: {PostId: exPost.id, TagId: deleteTagObj.id}});
+                }))
+            }
             /// 추가할 태그 처리
-            const getTags = req.body.addTags;
-            if(getTags) {
+            if(req.body.addTags != undefined) {
+                const getTags = req.body.addTags;
                 // Tag name으로 태그 찾아오기 (Tag의 id가 필요하기 때문이다.)
                 const result = await Promise.all(getTags.map(async (tag) => await Tag.findOrCreate({where: {name: tag},})))
+                console.log(result);
                 // Tag를 모두 돌며 PostTag에 등록하기
-                await Promise.all(result.map( async (tag) => {
+                await Promise.all(result.map(async (tag) => {
                     await PostTag.findOrCreate({
                         where: {
                             PostId: exPost.id,
@@ -207,8 +217,8 @@ router.get('/:postId', passport.authenticate('jwt', {session: false}), async (re
             writer: post.Account.name,
             content: post.content,
             boardType: post.boardType,
-            tag: stringTags,
-            comment : commentDTOS,
+            tags: stringTags, // tag -> tags
+            comments: commentDTOS,
             userCheck: isMyPost,
             timestamp: post.createdAt,
         }
