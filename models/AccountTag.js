@@ -13,8 +13,12 @@ module.exports = (sequelize, DataTypes) => {
         createdAt: 'time_stamp',
     });
     AccountTag.associate = (db) => {
-        db.AccountTag.belongsTo(db.Account);
-        db.AccountTag.belongsTo(db.Tag);
+        db.AccountTag.belongsTo(db.Account, {
+            foreignKey: 'account_id',
+        });
+        db.AccountTag.belongsTo(db.Tag, {
+            foreignKey: 'tag_id',
+        });
     }
     return AccountTag;
 };

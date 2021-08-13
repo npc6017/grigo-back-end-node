@@ -19,7 +19,9 @@ module.exports = (sequelize, DataTypes) => {
         db.Tag.hasMany(db.PostTag, {
             foreignKey: 'tag_id',
         });
-        db.Tag.hasMany(db.AccountTag);
+        db.Tag.hasMany(db.AccountTag, {
+            foreignKey: 'tag_id'
+        });
     }
     return Tag;
 }

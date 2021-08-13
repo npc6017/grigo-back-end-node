@@ -50,7 +50,9 @@ module.exports = (sequelize, DataTypes) => {
         db.Account.hasMany(db.Notification, {
             foreignKey: 'account_id'
         });
-        db.Account.hasMany(db.AccountTag);
+        db.Account.hasMany(db.AccountTag, {
+            foreignKey: 'account_id',
+        });
     }
     return Account;
 };
