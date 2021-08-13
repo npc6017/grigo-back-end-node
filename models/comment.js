@@ -5,6 +5,7 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
         }
     }, {
+        tableName: 'comment',
         charset: 'utf8mb4',
         collate: 'utf8mb4_general_ci',
     });

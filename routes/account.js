@@ -28,8 +28,8 @@ router.get('/profile', passport.authenticate("jwt", {session: false}), async (re
             include: [{
                 model: AccountTag,
                 include: [Tag]
-            }],
-            attributes: { exclude: ['id', 'password', 'checkNotice', 'createdAt', 'updatedAt']}
+            }],/// checkNotice -> check_notice
+            attributes: { exclude: ['id', 'password', 'check_notice', 'createdAt', 'updatedAt']}
         });
         if(!account)
             return res.status(400).send('잘못된 접근입니다.');
@@ -38,7 +38,8 @@ router.get('/profile', passport.authenticate("jwt", {session: false}), async (re
         const stringTag = account.AccountTags.map((accountTag) =>  accountTag.Tag.name )
 
         // ProfileDTO
-        const profileDTO = { email: account.email, name: account.name, student_id: account.studentId, phone: account.phone, birth: account.birth, sex: account.sex, tags: stringTag,}
+        const profileDTO = { email: account.email, name: account.name, student_id: account.student_id, phone: account.phone, birth: account.birth, sex: account.sex, tags: stringTag,}
+        /// studentId -> student_id
         res.status(200).json(profileDTO);
     }catch(error){
         console.error(error);
@@ -81,12 +82,12 @@ router.post('/login', async (req, res, next) => {
                 id: accountWithOutPw.id,
                 email: accountWithOutPw.email,
                 name: accountWithOutPw.name,
-                student_id: accountWithOutPw.studentId,
+                student_id: accountWithOutPw.student_id, /// studentId -> student_id
                 phone: accountWithOutPw.phone,
                 birth: accountWithOutPw.birth,
                 sex: accountWithOutPw.sex,
                 tags: stringTags,
-                checkNotice: accountWithOutPw.checkNotice,
+                check_notice: accountWithOutPw.check_notice, // checkNotice -> check_notice
             }
             /// Tag가 없으면 213, 있으면 214
             if(stringTags.length == 0)
@@ -116,7 +117,7 @@ router.post('/join', async (req, res, next) => {
         }
         /** 학번 중복 체크 */
         const exStuNum = await Account.findOne({
-            where: { studentId: req.body.student_id },/// studentId -> student_Id
+            where: { student_id: req.body.student_id }, /// studentId -> student_Id
         })
         if(exStuNum){
             return res.json({status: 404, errorMessage: "이미 가입되어 있는 학번입니다."});
@@ -129,7 +130,7 @@ router.post('/join', async (req, res, next) => {
             password: hashPW,
             name: req.body.name,
             birth: req.body.birth,
-            studentId: req.body.student_id, /// studentId -> student_id
+            student_id: req.body.student_id, /// studentId -> student_id
             sex: req.body.sex,
             phone: req.body.phone,
         });
@@ -154,7 +155,7 @@ router.get('/notification/:postId', passport.authenticate('jwt', {session: false
         })
         if(cnt == 0) { // 더 이상 알림이 존재하지 않으면, Account의 checkNotice를 false로 설정
             await Account.update({
-                checkNotice: false,
+                check_notice: false,/// checkNotice -> check_notice
             }, { where: { id: req.user.id}})
         }
 
@@ -265,7 +266,7 @@ router.post('/settings/profile', passport.authenticate('jwt', {session: false}),
                 model: AccountTag,
                 include: [Tag]
             }],
-            attributes: { exclude: ['id', 'password', 'checkNotice', 'createdAt', 'updatedAt']}
+            attributes: { exclude: ['id', 'password', 'check_notice', 'createdAt', 'updatedAt']} /// checkNotice -> check_notice
         });
         if(!account)
             return res.status(400).send('잘못된 접근입니다.');
@@ -274,7 +275,8 @@ router.post('/settings/profile', passport.authenticate('jwt', {session: false}),
         const stringTag = account.AccountTags.map((accountTag) =>  accountTag.Tag.name )
 
         // ProfileDTO
-        const profileDTO = { email: account.email, name: account.name, student_id: account.studentId, phone: account.phone, birth: account.birth, sex: account.sex, tags: stringTag,}
+        const profileDTO = { email: account.email, name: account.name, student_id: account.student_id, phone: account.phone, birth: account.birth, sex: account.sex, tags: stringTag,}
+        /// studentId -> student_id
         res.status(200).json(profileDTO);
 
     } catch (error){

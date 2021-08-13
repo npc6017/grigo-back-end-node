@@ -7,6 +7,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
         },
     }, {
+        tableName: 'post_tag',
         charset: 'utf8',
         collate: 'utf8_general_ci',
     });

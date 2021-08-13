@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(30),
             allowNull: false,
         },
-        studentId: {
+        student_id: { // studentId -> student_id
             type: DataTypes.INTEGER,
             allowNull: false,
             unique: true,
@@ -30,11 +30,12 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(20),
             allowNull: true,
         },
-        checkNotice:{
+        check_notice:{ // checkNotice -> check_notice
             type: DataTypes.BOOLEAN,
             defaultValue: false,
         }
     }, {
+        tableName: 'account',
         charset: 'utf8',
         collate: 'utf8_general_ci',
     });
