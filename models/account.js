@@ -35,10 +35,10 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: false,
         }
     }, {
+        timestamps: false,
         tableName: 'account',
         charset: 'utf8',
         collate: 'utf8_general_ci',
-        createdAt: 'time_stamp',
     });
     Account.associate = (db) => {
         db.Account.hasMany(db.Post, {
@@ -47,7 +47,9 @@ module.exports = (sequelize, DataTypes) => {
         db.Account.hasMany(db.Comment, {
             foreignKey: 'account_id' /// 양 도메인 모두에 정의해야 적용된다.
         });
-        db.Account.hasMany(db.Notification);
+        db.Account.hasMany(db.Notification, {
+            foreignKey: 'account_id'
+        });
         db.Account.hasMany(db.AccountTag, {
             foreignKey: 'account_id',
         });

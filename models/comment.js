@@ -9,6 +9,7 @@ module.exports = (sequelize, DataTypes) => {
         charset: 'utf8mb4',
         collate: 'utf8mb4_general_ci',
         createdAt: 'time_stamp',
+        updatedAt: false,
     });
     Comment.associate = (db) => {
         db.Comment.belongsTo(db.Account, {

@@ -7,10 +7,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
         },
     }, {
+        timestamps: false,
         tableName: 'post_tag',
         charset: 'utf8',
         collate: 'utf8_general_ci',
-        createdAt: 'time_stamp',
     });
     PostTag.associate = (db) => {
         db.PostTag.belongsTo(db.Post, {

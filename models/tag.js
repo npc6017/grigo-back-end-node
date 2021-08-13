@@ -10,10 +10,10 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true,
         },
     }, {
+        timestamps: false,
         tableName: 'tag',
         charset: 'utf8mb4',
         collate: 'utf8mb4_general_ci',
-        createdAt: 'time_stamp',
     });
     Tag.associate = (db) => {
         db.Tag.hasMany(db.PostTag, {

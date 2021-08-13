@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.TEXT,
             allowNull: false,
         },
-        boardType: {
+        board_type: {
             type: DataTypes.STRING(20),
             allowNull: false,
         },
@@ -17,6 +17,7 @@ module.exports = (sequelize, DataTypes) => {
         charset: 'utf8mb4',
         collate: 'utf8mb4_general_ci',
         createdAt: 'time_stamp',
+        updatedAt: false,
     });
     Post.associate = (db) => {
         db.Post.belongsTo(db.Account, {
@@ -28,7 +29,9 @@ module.exports = (sequelize, DataTypes) => {
         db.Post.hasMany(db.Comment, {
             foreignKey: 'post_id' /// 양 도메인 모두에 정의해야 적용된다.
         });
-        db.Post.hasMany(db.Notification);
+        db.Post.hasMany(db.Notification, {
+            foreignKey: 'post_id'
+        });
     }
     return Post;
 }
