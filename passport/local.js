@@ -16,8 +16,10 @@ module.exports = () => {
             if(!account) {
                 return done(null, false, { reason: '이메일 또는 비밀번호가 틀립니다.' });
             }
+            /// 비밀번호 전처리, ({bcrypt}제거)
+
             // 비밀번호 검증
-            const result = await bcrypt.compare(password, account.password);
+            const result = await bcrypt.compare(password, account.password.substr(8));/// account.password.substr(8) => {bcrypt} 제거
             // 비밀번호 검증에 실패한 경우
             if(!result) {
                 return done(null, false, { reason: '이메일 또는 비밀번호가 틀립니다.' });
