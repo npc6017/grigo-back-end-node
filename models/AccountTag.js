@@ -10,6 +10,7 @@ module.exports = (sequelize, DataTypes) => {
         tableName: 'account_tag',
         charset: 'utf8',
         collate: 'utf8_general_ci',
+        createdAt: 'time_stamp',
     });
     AccountTag.associate = (db) => {
         db.AccountTag.belongsTo(db.Account);

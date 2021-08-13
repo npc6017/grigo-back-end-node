@@ -73,7 +73,7 @@ router.get('/board', passport.authenticate('jwt', {session: false}), async (req,
         const posts = await Post.findAll({
             where,
             limit: req.query.size,
-            order: [['createdAt', 'DESC']], // 최신 게시글부터
+            order: [['time_stamp', 'DESC']], // 최신 게시글부터, ///createAt -> time_stamp
             include: [Account, {
                 model: PostTag, include : {
                     model: Tag
@@ -97,7 +97,7 @@ router.get('/board', passport.authenticate('jwt', {session: false}), async (req,
                 boardType: post.boardType,
                 tags: stringTags,
                 comments: null, // 필요 없음
-                timeStamp: post.createdAt,
+                timeStamp: post.time_stamp, /// createAt -> time_stamp
                 userCheck: post.Account.id == req.user.id
             }
         }))

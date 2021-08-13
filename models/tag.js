@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
         tableName: 'tag',
         charset: 'utf8mb4',
         collate: 'utf8mb4_general_ci',
+        createdAt: 'time_stamp',
     });
     Tag.associate = (db) => {
         db.Tag.hasMany(db.PostTag);

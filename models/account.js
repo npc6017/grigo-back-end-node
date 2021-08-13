@@ -38,6 +38,7 @@ module.exports = (sequelize, DataTypes) => {
         tableName: 'account',
         charset: 'utf8',
         collate: 'utf8_general_ci',
+        createdAt: 'time_stamp',
     });
     Account.associate = (db) => {
         db.Account.hasMany(db.Post);

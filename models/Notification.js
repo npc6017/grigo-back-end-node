@@ -12,6 +12,7 @@ module.exports = (sequelize, DataTypes) => {
         tableName: 'notification',
         charset: 'utf8',
         collate: 'utf8_general_ci',
+        createdAt: 'time_stamp',
     });
     Notification.associate = (db) => {
         db.Notification.belongsTo(db.Account, {

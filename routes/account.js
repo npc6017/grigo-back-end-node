@@ -29,7 +29,7 @@ router.get('/profile', passport.authenticate("jwt", {session: false}), async (re
                 model: AccountTag,
                 include: [Tag]
             }],/// checkNotice -> check_notice
-            attributes: { exclude: ['id', 'password', 'check_notice', 'createdAt', 'updatedAt']}
+            attributes: { exclude: ['id', 'password', 'check_notice', 'time_stamp', 'updatedAt']} /// createAt -> time_stamp
         });
         if(!account)
             return res.status(400).send('잘못된 접근입니다.');
@@ -66,7 +66,7 @@ router.post('/login', async (req, res, next) => {
             const accountWithOutPw = await Account.findOne({
                 where: { id: user.id},
                 attributes:{
-                    exclude: ['password', 'createdAt', 'updatedAt'],
+                    exclude: ['password', 'time_stamp', 'updatedAt'], /// createAt -> time_stamp
                 },
             });
             // TODO Tag 가져오는 코드 작성
@@ -266,7 +266,7 @@ router.post('/settings/profile', passport.authenticate('jwt', {session: false}),
                 model: AccountTag,
                 include: [Tag]
             }],
-            attributes: { exclude: ['id', 'password', 'check_notice', 'createdAt', 'updatedAt']} /// checkNotice -> check_notice
+            attributes: { exclude: ['id', 'password', 'check_notice', 'time_stamp', 'updatedAt']} /// checkNotice -> check_notice, createAt -> time_stamp
         });
         if(!account)
             return res.status(400).send('잘못된 접근입니다.');

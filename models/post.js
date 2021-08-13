@@ -16,6 +16,7 @@ module.exports = (sequelize, DataTypes) => {
         tableName: 'post',
         charset: 'utf8mb4',
         collate: 'utf8mb4_general_ci',
+        createdAt: 'time_stamp',
     });
     Post.associate = (db) => {
         db.Post.belongsTo(db.Account);
