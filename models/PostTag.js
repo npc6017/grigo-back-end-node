@@ -1,9 +1,9 @@
 module.exports = (sequelize, DataTypes) => {
     const PostTag = sequelize.define('PostTag', {
-        PostId: {
+        post_id: {
             type: DataTypes.INTEGER,
         },
-        TagId: {
+        tag_id: {
             type: DataTypes.INTEGER,
         },
     }, {
@@ -13,8 +13,12 @@ module.exports = (sequelize, DataTypes) => {
         createdAt: 'time_stamp',
     });
     PostTag.associate = (db) => {
-        db.PostTag.belongsTo(db.Post);
-        db.PostTag.belongsTo(db.Tag);
+        db.PostTag.belongsTo(db.Post, {
+            foreignKey: 'post_id',
+        });
+        db.PostTag.belongsTo(db.Tag, {
+            foreignKey: 'tag_id',
+        });
     }
     return PostTag;
 };

@@ -16,7 +16,9 @@ module.exports = (sequelize, DataTypes) => {
         createdAt: 'time_stamp',
     });
     Tag.associate = (db) => {
-        db.Tag.hasMany(db.PostTag);
+        db.Tag.hasMany(db.PostTag, {
+            foreignKey: 'tag_id',
+        });
         db.Tag.hasMany(db.AccountTag);
     }
     return Tag;
