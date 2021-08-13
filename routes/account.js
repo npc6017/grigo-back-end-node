@@ -147,11 +147,11 @@ router.post('/join', async (req, res, next) => {
 router.get('/notification/:postId', passport.authenticate('jwt', {session: false}), async (req, res, next) => {
     try{
         const isRead = await Notification.destroy({
-            where: { AccountId: req.user.id, PostId: req.params.postId},
+            where: { account_id: req.user.id, post_id: req.params.postId}, /// AccountId -> account_id, PostId -> post_id
         }) // 알림 읽음 처리 여부
 
         const cnt = await Notification.count({
-            where: { AccountId: req.user.id, PostId: req.params.postId},
+            where: { account_id: req.user.id, post_id: req.params.postId}, /// AccountId -> account_id, PostId -> post_id
         })
         if(cnt == 0) { // 더 이상 알림이 존재하지 않으면, Account의 checkNotice를 false로 설정
             await Account.update({
@@ -172,8 +172,8 @@ router.get('/notification/:postId', passport.authenticate('jwt', {session: false
 /** 알람 갱신 요청, Get */
 router.get('/notification', passport.authenticate('jwt', {session: false}), async (req, res, next) => {
     try{
-        const myNotification = await Notification.findAll({where: {AccountId: req.user.id}})
-        const posts = await Promise.all(myNotification.map((noti) => Post.findOne({where: { id: noti.PostId }})))
+        const myNotification = await Notification.findAll({where: { account_id: req.user.id}}) /// AccountId -> account_id
+        const posts = await Promise.all(myNotification.map((noti) => Post.findOne({where: { id: noti.post_id }})))  /// PostId -> post_id
         const result = [];
         myNotification.map((a, i) => {
             result.push({id: a.id, postId: posts[i].id, title: posts[i].title});
