@@ -49,7 +49,7 @@ router.post('/save', passport.authenticate(`jwt`, {session: false}),
             // 알림 생성 및 설정
             accountIds.map(async (ac) => {
                 await Notification.create({AccountId: ac, PostId: savedPost.id});
-                await Account.update({checkNotice: true}, {where: { id: ac}})
+                await Account.update({check_notice: true}, {where: { id: ac}}) /// checkNotice -> check_notice
             })
 
             res.status(200).send("post save successful");
