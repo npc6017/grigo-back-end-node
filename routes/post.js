@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router();
 const passport = require('passport')
 const { Post, Tag, PostTag, AccountTag, Notification, Account, Comment } = require('../models');
-const { Op } = require('sequelize');
+const { Op, where} = require('sequelize');
 
 /** Save Post, Post
  * Content-type : application/json
@@ -13,11 +13,14 @@ router.post('/save', passport.authenticate(`jwt`, {session: false}),
             // Post 생성(Tag는 다음 로직에서 처리)
             const savedPost = await Post.create({
                 title: req.body.title,
-                boardType: req.body.boardType,
+                board_type: req.body.boardType, /// boardType -> boart_type
                 content: req.body.content,
                 account_id: req.user.id, /// AccountId -> account_id
             });
             // tag name으로 Tag객체를 받아서 Post에 넣기
+            if(req.body.boardType == 'free'){
+                return res.status(200).send("post save successful");
+            }
             const tagsObj = await Promise.all(req.body.tags.map((tag) => Tag.findOne({where: {name : tag},})));
             await Promise.all(tagsObj.map((tag) =>
                 PostTag.findOrCreate({
@@ -48,7 +51,7 @@ router.post('/save', passport.authenticate(`jwt`, {session: false}),
             })});
             // 알림 생성 및 설정
             accountIds.map(async (ac) => {
-                await Notification.create({AccountId: ac, PostId: savedPost.id}); /// PostId -> post_id
+                await Notification.create({account_id: ac, post_id: savedPost.id}); /// AccountId -> account_id PostId -> post_id
                 await Account.update({check_notice: true}, {where: { id: ac}}) /// checkNotice -> check_notice
             })
 
@@ -63,7 +66,7 @@ router.post('/save', passport.authenticate(`jwt`, {session: false}),
 router.get('/board', passport.authenticate('jwt', {session: false}), async (req, res, next) => {
     try {// id, size, type
         // where 조건을 미리 정의.
-        const where = { boardType: req.query.type };
+        const where = { board_type: req.query.type }; /// boardType -> board_type
         if(parseInt(req.query.id, 10)) {
             // Op.lt: 5 -> 5보다 작은 것들 / where.id 이므로 id가 5보다 작은 것들!
             // 만약 10개인데 100보다 작은 것을 요청하면 10부터 가져온다.
@@ -94,7 +97,7 @@ router.get('/board', passport.authenticate('jwt', {session: false}), async (req,
                 title: post.title,
                 writer: post.Account.name,
                 content: post.content,
-                boardType: post.boardType,
+                boardType: post.board_type, /// /// boardType -> board_type
                 tags: stringTags,
                 comments: null, // 필요 없음
                 timeStamp: post.time_stamp, /// createAt -> time_stamp
@@ -126,7 +129,7 @@ router.post('/:postId/update', passport.authenticate('jwt', {session: false}),
             await Post.update({
                 title: req.body.title,
                 content: req.body.content,
-                boardType: req.body.boardType,
+                board_type: req.body.boardType, /// boardType -> board_type
             },{
                 where: { id: exPost.id}
             })
@@ -177,6 +180,11 @@ router.post('/:postId/delete', passport.authenticate('jwt', {session: false}), a
         if(!exPost){
             return res.status(404).send("post not found");
         }
+        /// 게시글 삭제 전 연결된 모든 알림 삭제 처리
+        await Notification.destroy({where: {post_id: exPost.id}});
+        // 게시글 삭제 전 연결된 모든 게시글-태그 삭제 처리
+        await PostTag.destroy({where: { post_id: exPost.id}});
+        // 게시글 삭제처리
         await Post.destroy({where: {id : exPost.id}})
         return res.status(200).send("post delete successful");
     } catch (error) {
@@ -216,7 +224,7 @@ router.get('/:postId', passport.authenticate('jwt', {session: false}), async (re
             title: post.title,
             writer: post.Account.name,
             content: post.content,
-            boardType: post.boardType,
+            boardType: post.board_type, /// boardType -> board_type
             tags: stringTags, // tag -> tags
             comments: commentDTOS,
             userCheck: isMyPost,
