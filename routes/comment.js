@@ -16,7 +16,7 @@ router.post('/:postId/comment', passport.authenticate('jwt', {session: false}), 
         }
         await Comment.create({
             content: req.body.content,
-            AccountId: req.user.id,
+            account_id: req.user.id, /// AccountId -> account_id
             PostId: post.id,
         })
         res.status(200).send("댓글을 성공적으로 작성하였습니다.");
@@ -30,7 +30,7 @@ router.post('/:postId/comment', passport.authenticate('jwt', {session: false}), 
 router.post('/comment/:commentId', passport.authenticate('jwt', {session: false}), async (req, res, next) => {
     try {
         // 댓글 존재 유무 및 본인 소유 여부 확인
-        const comment = await Comment.findOne({where: { id: req.params.commentId, AccountId: req.user.id}});
+        const comment = await Comment.findOne({where: { id: req.params.commentId, account_id: req.user.id}}); /// AccountId -> account_id
         if(!comment){ // 댓글 탐색 결과가 없는경우,
             return res.status(400).send("잘못된 접근입니다.");
         }
@@ -48,7 +48,7 @@ router.post('/comment/:commentId', passport.authenticate('jwt', {session: false}
 router.post('/comment/change/:commentId', passport.authenticate('jwt', {session: false}), async (req, res, next) =>{
     try{
         // 댓글 존재 유무 및 본인 소유 여부 확인
-        const comment = await Comment.findOne({where: { id: req.params.commentId, AccountId: req.user.id}});
+        const comment = await Comment.findOne({where: { id: req.params.commentId, account_id: req.user.id}}); /// AccountId -> account_id
         if(!comment){
             return res.status(400).send("잘못된 접근입니다.");
         }

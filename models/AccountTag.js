@@ -1,9 +1,9 @@
 module.exports = (sequelize, DataTypes) => {
     const AccountTag = sequelize.define('AccountTag', {
-        AccountId: {
+        account_id: { ///AccountId -> account_id
             type: DataTypes.INTEGER,
         },
-        TagId: {
+        tag_id: { /// TagId -> tag_id
             type: DataTypes.INTEGER,
         },
     }, {

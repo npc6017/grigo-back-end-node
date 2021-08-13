@@ -70,9 +70,9 @@ router.post('/login', async (req, res, next) => {
                 },
             });
             // TODO Tag 가져오는 코드 작성
-            const tags = await AccountTag.findAll({where: { AccountId: accountWithOutPw.id }});
+            const tags = await AccountTag.findAll({where: { account_id: accountWithOutPw.id }}); /// AccountId -> account_id
             const stringTags = await Promise.all(tags.map( async (tag) => {
-                   const stringTag = await Tag.findOne({where: {id: tag.TagId}})
+                   const stringTag = await Tag.findOne({where: {id: tag.tag_id}}) /// TagId -> tag_id
                     return stringTag.name;
                 }
             ));
@@ -147,11 +147,11 @@ router.post('/join', async (req, res, next) => {
 router.get('/notification/:postId', passport.authenticate('jwt', {session: false}), async (req, res, next) => {
     try{
         const isRead = await Notification.destroy({
-            where: { AccountId: req.user.id, PostId: req.params.postId},
+            where: { account_id: req.user.id, PostId: req.params.postId}, /// AccountId -> account_id
         }) // 알림 읽음 처리 여부
 
         const cnt = await Notification.count({
-            where: { AccountId: req.user.id, PostId: req.params.postId},
+            where: { account_id: req.user.id, PostId: req.params.postId}, /// AccountId -> account_id
         })
         if(cnt == 0) { // 더 이상 알림이 존재하지 않으면, Account의 checkNotice를 false로 설정
             await Account.update({
@@ -172,7 +172,7 @@ router.get('/notification/:postId', passport.authenticate('jwt', {session: false
 /** 알람 갱신 요청, Get */
 router.get('/notification', passport.authenticate('jwt', {session: false}), async (req, res, next) => {
     try{
-        const myNotification = await Notification.findAll({where: {AccountId: req.user.id}})
+        const myNotification = await Notification.findAll({where: {account_id: req.user.id}}) /// AccountId -> account_id
         const posts = await Promise.all(myNotification.map((noti) => Post.findOne({where: { id: noti.PostId }})))
         const result = [];
         myNotification.map((a, i) => {
@@ -236,7 +236,7 @@ router.post('/settings/profile', passport.authenticate('jwt', {session: false}),
             // 사용자의 태그가 비어있지 않을 때, 삭체 처리 진행.
             await Promise.all(deleteTagsObj.map((deleteTagObj) => {
                 if (deleteTagObj != null)
-                    AccountTag.destroy({where: {AccountId: req.user.id, TagId: deleteTagObj.id}});
+                    AccountTag.destroy({where: {account_id: req.user.id, tag_id: deleteTagObj.id}}); /// AccountId -> account_id, TagId -> tag_id
             }))
         }
 
@@ -249,8 +249,8 @@ router.post('/settings/profile', passport.authenticate('jwt', {session: false}),
             await Promise.all(result.map( async (tag) => {
                 await AccountTag.findOrCreate({
                     where: {
-                        AccountId: req.user.id,
-                        TagId: tag[0].id,
+                        account_id: req.user.id, /// AccountId -> account_id
+                        tag_id: tag[0].id, /// TagId -> tag_id
                     }
                 });
             }))

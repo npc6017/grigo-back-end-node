@@ -15,7 +15,7 @@ router.post('/save', passport.authenticate(`jwt`, {session: false}),
                 title: req.body.title,
                 boardType: req.body.boardType,
                 content: req.body.content,
-                AccountId: req.user.id,
+                account_id: req.user.id, /// AccountId -> account_id
             });
             // tag name으로 Tag객체를 받아서 Post에 넣기
             const tagsObj = await Promise.all(req.body.tags.map((tag) => Tag.findOne({where: {name : tag},})));
@@ -23,7 +23,7 @@ router.post('/save', passport.authenticate(`jwt`, {session: false}),
                 PostTag.findOrCreate({
                     where: {
                         PostId: savedPost.id,
-                        TagId: tag.id,
+                        tag_id: tag.id, /// TagId -> tag_id
                     }
                 })))
             /** (위 로직)tag 라우터에서 findOrCreate에서는 tags.map((v) => v[0]) 이렇게 0번 인덱스를 뽑아야 했는데,
@@ -34,7 +34,7 @@ router.post('/save', passport.authenticate(`jwt`, {session: false}),
                 /// Tag를 가지고 있는 account 가져오기,
             const accounts = await Promise.all(tagsObj.map((tag) =>
                     AccountTag.findAll({
-                        where: { TagId: tag.id }
+                        where: { tag_id : tag.id } /// AccountId -> account_id
                     })
                 ));
 
@@ -48,7 +48,7 @@ router.post('/save', passport.authenticate(`jwt`, {session: false}),
             })});
             // 알림 생성 및 설정
             accountIds.map(async (ac) => {
-                await Notification.create({AccountId: ac, PostId: savedPost.id});
+                await Notification.create({account_id: ac, PostId: savedPost.id}); /// AccountId -> account_id
                 await Account.update({check_notice: true}, {where: { id: ac}}) /// checkNotice -> check_notice
             })
 
@@ -117,7 +117,7 @@ router.post('/:postId/update', passport.authenticate('jwt', {session: false}),
     async (req, res, next) => {
         try{
             // 게시글이 존재하는지, 본인 게시글인지 확인
-            const exPost = await Post.findOne({where: { id: req.params.postId, AccountId: req.user.id}});
+            const exPost = await Post.findOne({where: { id: req.params.postId, account_id: req.user.id}}); /// AccountId -> account_id
             // 없는 경우
             if(!exPost){
                 return res.status(404).send("post not found");
@@ -139,7 +139,7 @@ router.post('/:postId/update', passport.authenticate('jwt', {session: false}),
                 // 글의 태그가 비어있지 않을 때, 삭체 처리 진행.
                 await Promise.all(deleteTagsObj.map((deleteTagObj) => {
                     if(deleteTagObj != null)
-                        PostTag.destroy({where: {PostId: exPost.id, TagId: deleteTagObj.id}});
+                        PostTag.destroy({where: {PostId: exPost.id, tag_id: deleteTagObj.id}});
                 }))
             }
             /// 추가할 태그 처리
@@ -153,7 +153,7 @@ router.post('/:postId/update', passport.authenticate('jwt', {session: false}),
                     await PostTag.findOrCreate({
                         where: {
                             PostId: exPost.id,
-                            TagId: tag[0].id,
+                            tag_id: tag[0].id,/// TagId -> tag_id
                         }
                     });
                 }))
@@ -171,7 +171,7 @@ router.post('/:postId/update', passport.authenticate('jwt', {session: false}),
 router.post('/:postId/delete', passport.authenticate('jwt', {session: false}), async (req, res, next) => {
     try{
         // 게시글이 존재하는지, 본인 게시글인지 확인
-        const exPost = await Post.findOne({where: { id: req.params.postId, AccountId: req.user.id}});
+        const exPost = await Post.findOne({where: { id: req.params.postId, account_id: req.user.id}}); /// AccountId -> account_id
         // 게시글이 존재하면 삭제, 없으면 에러 처리
         // 게시글 삭제되면서 PostTag의 삭제 게시글 또한 같이 삭제처리가 된다.
         if(!exPost){
@@ -196,7 +196,7 @@ router.get('/:postId', passport.authenticate('jwt', {session: false}), async (re
         if(!post)
             return res.status(404).send("요청 정보를 확인하시기 바랍니다.");
         // TagId를 통해 tag객체들 가져오기
-        const tags = await Promise.all(post.PostTags.map((postTag) => Tag.findOne({where: { id: postTag.TagId}})))
+        const tags = await Promise.all(post.PostTags.map((postTag) => Tag.findOne({where: { id: postTag.tag_id}}))) /// TagId -> tag_id
         // Tag의 name만 추출.
         const stringTags = tags.map((tag) => tag.name);
         // 나의 글인지 판단
@@ -204,9 +204,9 @@ router.get('/:postId', passport.authenticate('jwt', {session: false}), async (re
         // 댓글DTO 만들기
         const commentDTOS = await Promise.all((post.Comments.map( async (comment) => {
             // Account 이름 가져오기
-            const cmtAccount = await Account.findOne({where: { id: comment.AccountId }});
+            const cmtAccount = await Account.findOne({where: { id: comment.account_id }}); /// AccountId -> account_id
             // 나의 댓글인치 확인
-            const isMyComment = comment.AccountId == req.user.id;
+            const isMyComment = comment.account.id == req.user.id; /// AccountId -> account_id
             return { id: comment.id, content: comment.content, writer: cmtAccount.name, timestamp: comment.createdAt, userCheck: isMyComment }
         })));
 

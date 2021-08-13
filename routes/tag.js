@@ -16,8 +16,8 @@ router.post('/setting', passport.authenticate('jwt', {session: false}), async (r
             await Promise.all(result.map((tag) => {
                AccountTag.findOrCreate({
                    where: {
-                       AccountId: req.user.id,
-                       TagId: tag[0].id, }
+                       account_id: req.user.id, /// AccountId -> account_id
+                       tag_id: tag[0].id, } /// TagId -> tag_id
                 });
             }))
             /**
@@ -35,11 +35,11 @@ router.post('/setting', passport.authenticate('jwt', {session: false}), async (r
 /** Get Account Tag, Get */
 router.get('/setting', passport.authenticate('jwt', {session: false}), async (req, res, next) => {
     try{
-        const accountTags = await AccountTag.findAll({ where: { AccountId: req.user.id } }) // Tags (모든 정보 같고 있는 객체)
+        const accountTags = await AccountTag.findAll({ where: { account_id: req.user.id } }) // Tags (모든 정보 같고 있는 객체), AccountId -> account_id
         // AccountTag에서 가져온 TagId로 Tag들 가져오기.
         const tags = await Promise.all(accountTags.map((accountTag) =>
             Tag.findOne({
-            where: { id: accountTag.TagId },
+            where: { id: accountTag.tag_id }, /// TagId -> tag_id
         })));
         // 문자열 배열(stringTag)로 만들기
         const stringTag = [];
