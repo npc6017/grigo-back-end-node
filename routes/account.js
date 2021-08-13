@@ -127,7 +127,7 @@ router.post('/join', async (req, res, next) => {
         const hashPW = await bcrypt.hash(req.body.password, 12);
         await Account.create({
             email: req.body.email,
-            password: hashPW,
+            password: `{bcrypt}${hashPW}`,
             name: req.body.name,
             birth: req.body.birth,
             student_id: req.body.student_id, /// studentId -> student_id
@@ -193,7 +193,7 @@ router.post('/settings/password', passport.authenticate("jwt", {session: false})
     try{
         // 기존 비밀번호 체크
         const isDBpw = await Account.findOne({where: { id: req.user.id}});
-        const isCheckBasic = await bcrypt.compare(req.body.currentPassword, isDBpw.password);
+        const isCheckBasic = await bcrypt.compare(req.body.currentPassword, isDBpw.password.substr(8));
 
         // 변경 불허!
         if(!isCheckBasic)
@@ -206,7 +206,7 @@ router.post('/settings/password', passport.authenticate("jwt", {session: false})
         // 모든 검증 통과, 변경 진행
         const newPassword = await bcrypt.hash(req.body.newPassword, 12);
         await Account.update({
-            password: newPassword,
+            password: `{bcrypt}${newPassword}`,
         }, { where: { id: req.user.id }});
 
         res.status(200).json({status : 200, errormessage: "비밀번호가 성공적으로 변경되었습니다."});
