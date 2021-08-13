@@ -22,7 +22,7 @@ router.post('/save', passport.authenticate(`jwt`, {session: false}),
             await Promise.all(tagsObj.map((tag) =>
                 PostTag.findOrCreate({
                     where: {
-                        PostId: savedPost.id,
+                        post_id: savedPost.id, /// PostId -> post_id
                         tag_id: tag.id, /// TagId -> tag_id
                     }
                 })))
@@ -48,7 +48,7 @@ router.post('/save', passport.authenticate(`jwt`, {session: false}),
             })});
             // 알림 생성 및 설정
             accountIds.map(async (ac) => {
-                await Notification.create({account_id: ac, PostId: savedPost.id}); /// AccountId -> account_id
+                await Notification.create({account_id: ac, post_id: savedPost.id}); /// AccountId -> account_id, PostId -> post_id
                 await Account.update({check_notice: true}, {where: { id: ac}}) /// checkNotice -> check_notice
             })
 
@@ -139,7 +139,7 @@ router.post('/:postId/update', passport.authenticate('jwt', {session: false}),
                 // 글의 태그가 비어있지 않을 때, 삭체 처리 진행.
                 await Promise.all(deleteTagsObj.map((deleteTagObj) => {
                     if(deleteTagObj != null)
-                        PostTag.destroy({where: {PostId: exPost.id, tag_id: deleteTagObj.id}});
+                        PostTag.destroy({where: {post_id: exPost.id, tag_id: deleteTagObj.id}}); /// PostId -> post_id
                 }))
             }
             /// 추가할 태그 처리
@@ -152,7 +152,7 @@ router.post('/:postId/update', passport.authenticate('jwt', {session: false}),
                 await Promise.all(result.map(async (tag) => {
                     await PostTag.findOrCreate({
                         where: {
-                            PostId: exPost.id,
+                            post_id: exPost.id, /// PostId -> post_id
                             tag_id: tag[0].id,/// TagId -> tag_id
                         }
                     });
@@ -191,7 +191,7 @@ router.get('/:postId', passport.authenticate('jwt', {session: false}), async (re
     try{
         const post = await Post.findOne({
             where: { id: req.params.postId },
-            include: [{ model: Account }, { model: PostTag}, { model: Comment, attributes: { exclude: ['updatedAt', 'PostId']} }],
+            include: [{ model: Account }, { model: PostTag}, { model: Comment, attributes: { exclude: ['updatedAt', 'post_id']} }], /// PostId -> post_id
         });
         if(!post)
             return res.status(404).send("요청 정보를 확인하시기 바랍니다.");

@@ -17,7 +17,7 @@ router.post('/:postId/comment', passport.authenticate('jwt', {session: false}), 
         await Comment.create({
             content: req.body.content,
             account_id: req.user.id, /// AccountId -> account_id
-            PostId: post.id,
+            post_id: post.id, /// PostId -> post_id
         })
         res.status(200).send("댓글을 성공적으로 작성하였습니다.");
     }catch (error){

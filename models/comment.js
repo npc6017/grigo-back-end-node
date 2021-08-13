@@ -10,8 +10,12 @@ module.exports = (sequelize, DataTypes) => {
         collate: 'utf8mb4_general_ci',
     });
     Comment.associate = (db) => {
-        db.Comment.belongsTo(db.Account);
-        db.Comment.belongsTo(db.Post);
+        db.Comment.belongsTo(db.Account, {
+            foreignKey: 'account_id' /// 양 도메인 모두에 정의해야 적용된다.
+        });
+        db.Comment.belongsTo(db.Post, {
+            foreignKey: 'post_id' /// 양 도메인 모두에 정의해야 적용된다.
+        });
     }
     return Comment;
 }

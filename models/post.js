@@ -20,7 +20,9 @@ module.exports = (sequelize, DataTypes) => {
     Post.associate = (db) => {
         db.Post.belongsTo(db.Account);
         db.Post.hasMany(db.PostTag);
-        db.Post.hasMany(db.Comment);
+        db.Post.hasMany(db.Comment, {
+            foreignKey: 'post_id' /// 양 도메인 모두에 정의해야 적용된다.
+        });
         db.Post.hasMany(db.Notification);
     }
     return Post;
