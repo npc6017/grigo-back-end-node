@@ -1,10 +1,10 @@
 module.exports = (sequelize, DataTypes) => {
     const Notification = sequelize.define('Notification', {
-        account_id: {
+        AccountId: {
             type: DataTypes.INTEGER,
             allowNull: false,
         },
-        post_id: {
+        PostId: {
             type: DataTypes.INTEGER,
             allowNull: false,
         },
@@ -15,12 +15,8 @@ module.exports = (sequelize, DataTypes) => {
         createdAt: 'time_stamp',
     });
     Notification.associate = (db) => {
-        db.Notification.belongsTo(db.Account, {
-            foreignKey: 'account_id'
-        });
-        db.Notification.belongsTo(db.Post, {
-            foreignKey: 'post_id'
-        });
+        db.Notification.belongsTo(db.Account);
+        db.Notification.belongsTo(db.Post);
     }
     return Notification;
 };

@@ -42,13 +42,13 @@ router.post('/save', passport.authenticate(`jwt`, {session: false}),
             // 탐색하며 accountId를 중복없이 꺼내온다.
             const accountIds = []
             accounts.map((ac) => { ac.map((a) => {
-                if(!accountIds.includes(a.AccountId)){
-                    accountIds.push(a.AccountId)
+                if(!accountIds.includes(a.account_id)){
+                    accountIds.push(a.account_id)
                 }
             })});
             // 알림 생성 및 설정
             accountIds.map(async (ac) => {
-                await Notification.create({account_id: ac, post_id: savedPost.id}); /// AccountId -> account_id, PostId -> post_id
+                await Notification.create({AccountId: ac, PostId: savedPost.id}); /// PostId -> post_id
                 await Account.update({check_notice: true}, {where: { id: ac}}) /// checkNotice -> check_notice
             })
 
@@ -206,7 +206,7 @@ router.get('/:postId', passport.authenticate('jwt', {session: false}), async (re
             // Account 이름 가져오기
             const cmtAccount = await Account.findOne({where: { id: comment.account_id }}); /// AccountId -> account_id
             // 나의 댓글인치 확인
-            const isMyComment = comment.account.id == req.user.id; /// AccountId -> account_id
+            const isMyComment = comment.account_id == req.user.id; /// AccountId -> account_id
             return { id: comment.id, content: comment.content, writer: cmtAccount.name, timestamp: comment.createdAt, userCheck: isMyComment }
         })));
 

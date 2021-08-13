@@ -28,9 +28,7 @@ module.exports = (sequelize, DataTypes) => {
         db.Post.hasMany(db.Comment, {
             foreignKey: 'post_id' /// 양 도메인 모두에 정의해야 적용된다.
         });
-        db.Post.hasMany(db.Notification, {
-            foreignKey: 'post_id'
-        });
+        db.Post.hasMany(db.Notification);
     }
     return Post;
 }
