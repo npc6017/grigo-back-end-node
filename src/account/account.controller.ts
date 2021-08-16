@@ -1,15 +1,31 @@
-import { Body, Controller, HttpException, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpException,
+  Post,
+  Request,
+  Response,
+  UseGuards,
+} from '@nestjs/common';
 import { AccountService } from './account.service';
 import { JoinRequestDto } from './dto/join.dto';
 import { ResponseDTO } from './dto/responst.dto.will.delete';
+import { LocalAuthGuard } from '../auth/local-auth.guard';
+import { AuthService } from '../auth/auth.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('/')
 export class AccountController {
-  constructor(private userService: AccountService) {}
+  constructor(
+    private accountService: AccountService,
+    private authService: AuthService,
+  ) {}
+
   @Post('/join')
-  async login(@Body() account: JoinRequestDto): Promise<string | ResponseDTO> {
+  async join(@Body() account: JoinRequestDto): Promise<string | ResponseDTO> {
     /** Check isUser(email) */
-    await this.userService.findByEmail(account.email).then((account) => {
+    await this.accountService.findByEmail(account.email).then((account) => {
       if (account) {
         throw new HttpException( // Custom HttpException content
           {
@@ -21,7 +37,7 @@ export class AccountController {
       }
     });
     /** Check isUser(student_id) */
-    await this.userService
+    await this.accountService
       .findByStudentId(account.student_id)
       .then((account) => {
         if (account) {
@@ -36,7 +52,7 @@ export class AccountController {
       });
 
     /** Join */
-    return await this.userService
+    return await this.accountService
       .join(account)
       .then(() => {
         return new ResponseDTO(
@@ -54,5 +70,28 @@ export class AccountController {
           400,
         );
       });
+  }
+
+  @UseGuards(LocalAuthGuard)
+  @Post('/login')
+  async login(
+    @Request() req,
+    @Response() res,
+    @Body('email') email,
+  ): Promise<string> {
+    const token = await this.authService.login(email);
+    res.setHeader('authorization', token);
+
+    return res.json(req.user);
+    // TODO 계정의 태그 유무 확인 후
+    /// 있으면 214 응답
+    /// 없으면 213 응답
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/test')
+  test(@Request() req): string {
+    console.log(req.user);
+    return 'ok';
   }
 }
