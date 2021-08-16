@@ -6,7 +6,7 @@ import { JoinRequestDto } from './dto/join.dto';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
-export class UserService {
+export class AccountService {
   constructor(
     @InjectRepository(Account) private accountRepository: Repository<Account>,
   ) {}

@@ -1,11 +1,11 @@
 import { Body, Controller, HttpException, Post } from '@nestjs/common';
-import { UserService } from './user.service';
+import { AccountService } from './account.service';
 import { JoinRequestDto } from './dto/join.dto';
 import { ResponseDTO } from './dto/responst.dto.will.delete';
 
 @Controller('/')
-export class UserController {
-  constructor(private userService: UserService) {}
+export class AccountController {
+  constructor(private userService: AccountService) {}
   @Post('/join')
   async login(@Body() account: JoinRequestDto): Promise<string | ResponseDTO> {
     /** Check isUser(email) */
