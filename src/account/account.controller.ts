@@ -79,10 +79,11 @@ export class AccountController {
     @Response() res,
     @Body('email') email,
   ): Promise<string> {
-    const token = await this.authService.login(email);
+    const token = await this.authService.login(email); // Token 생성
+    const account = await this.accountService.login(email); // 사용자 Full 정보
     res.setHeader('authorization', token);
 
-    return res.json(req.user);
+    return res.json(account);
     // TODO 계정의 태그 유무 확인 후
     /// 있으면 214 응답
     /// 없으면 213 응답

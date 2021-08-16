@@ -18,6 +18,6 @@ const config: TypeOrmModuleOptions = {
   password: process.env.PASSWORD,
   database: process.env.DATABASE,
   entities: [Account, AccountTag, Comment, Notification, Post, PostTag, Tag],
-  synchronize: false,
+  synchronize: true,
 };
 module.exports = config;
