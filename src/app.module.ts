@@ -7,6 +7,7 @@ import * as ormconfig from '../ormconfig';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { TagModule } from './tag/tag.module';
+import { PostModule } from './post/post.module';
 @Module({
   imports: [
     AccountModule,
@@ -14,6 +15,7 @@ import { TagModule } from './tag/tag.module';
     ConfigModule.forRoot(),
     AuthModule,
     TagModule,
+    PostModule,
   ],
   controllers: [AppController],
   providers: [AppService],

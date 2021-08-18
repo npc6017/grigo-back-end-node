@@ -18,10 +18,8 @@ export class TagController {
   @Post('/setting')
   async setMyTags(
     @Request() req,
-    @Response() res,
     @Body('tags') tags: string[],
   ): Promise<void> {
-    res.setStatus(215); // spring server 및 client 간 정함
     await this.tagService.setMyTags(tags, req.user.email);
   }
 

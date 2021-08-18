@@ -73,4 +73,12 @@ export class AccountService {
     };
     return result;
   }
+
+  async setAccountCheckNotice(accountIds: number[]) {
+    await this.accountRepository
+      .createQueryBuilder()
+      .update({ checkNotice: true })
+      .whereInIds(accountIds)
+      .execute();
+  }
 }
