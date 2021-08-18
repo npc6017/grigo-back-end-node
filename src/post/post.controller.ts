@@ -23,7 +23,7 @@ export class PostController {
   /** Get Posts */
   @UseGuards(JwtAuthGuard)
   @Get('/board')
-  async getPosts(@Request() req, @Query() query): Promise<ResponsePostDTO[]> {
+  async getPosts(@Request() req, @Query() query) {
     return await this.postService.getMyPosts(req.user.email, query);
   }
 

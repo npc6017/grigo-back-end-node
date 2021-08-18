@@ -87,7 +87,7 @@ export class PostService {
     return this.postToResponsePostDTO(post, email);
   }
   /** 게시글(여러개) 조회 */
-  async getMyPosts(email: string, query): Promise<ResponsePostDTO[]> {
+  async getMyPosts(email: string, query) {
     const posts = await this.postRepository.find({
       skip: query.id - 1,
       take: query.size,
@@ -104,7 +104,7 @@ export class PostService {
     const postDTOS = await Promise.all(
       posts.map((post) => this.postToResponsePostDTO(post, email)),
     );
-    return postDTOS;
+    return { postDTOS: postDTOS, hasNext: postDTOS.length != 0 };
   }
 
   /** 단일 게시글 ResponsePostDTO 변환 */
