@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { RequestPostDto } from './request.post.dto';
+import { RequestPostDto } from './dto/request.post.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from '../entities/Post';
 import { Repository } from 'typeorm';
@@ -8,6 +8,7 @@ import { PostTag } from '../entities/PostTag';
 import { AccountTag } from '../entities/AccountTag';
 import { AccountService } from '../account/account.service';
 import { Tag } from '../entities/Tag';
+import { ResponsePostDTO } from './dto/response.post.dto';
 
 @Injectable()
 export class PostService {
@@ -70,5 +71,73 @@ export class PostService {
     });
     /// 중복없이 찾아낸 계정의 알림 상태 변경
     await this.accountService.setAccountCheckNotice(accountIds);
+  }
+  /** 단일 게시글 조회 */
+  async getMyPost(email: string, postId: number): Promise<ResponsePostDTO> {
+    const post = await this.postRepository.findOne({
+      where: { id: postId },
+      relations: [
+        'account',
+        'postTags',
+        'postTags.tag',
+        'comments',
+        'comments.account',
+      ],
+    });
+    return this.postToResponsePostDTO(post, email);
+  }
+  /** 게시글(여러개) 조회 */
+  async getMyPosts(email: string, query): Promise<ResponsePostDTO[]> {
+    const posts = await this.postRepository.find({
+      skip: query.id - 1,
+      take: query.size,
+      where: { boardType: query.type },
+      relations: [
+        'account',
+        'postTags',
+        'postTags.tag',
+        'comments',
+        'comments.account',
+      ],
+      order: { id: 'DESC' },
+    });
+    const postDTOS = await Promise.all(
+      posts.map((post) => this.postToResponsePostDTO(post, email)),
+    );
+    return postDTOS;
+  }
+
+  /** 단일 게시글 ResponsePostDTO 변환 */
+  postToResponsePostDTO(post: Post, email: string): ResponsePostDTO {
+    const {
+      id,
+      title,
+      account,
+      content,
+      boardType,
+      postTags,
+      comments,
+      timeStamp,
+    } = post;
+    const tags = postTags.map((tag) => tag.tag.name);
+    const commentDTOS = comments.map((comment) => {
+      return {
+        id: comment.id,
+        content: comment.content,
+        timeStamp: comment.timeStamp,
+        userCheck: email == comment.account.email ? true : false,
+      };
+    });
+    return new ResponsePostDTO(
+      id,
+      title,
+      account.name,
+      content,
+      boardType,
+      tags,
+      commentDTOS,
+      timeStamp,
+      email == account.email ? true : false,
+    );
   }
 }
