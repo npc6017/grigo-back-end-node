@@ -10,6 +10,7 @@ import { Account } from './Account';
 import { Post } from './Post';
 
 @Index('notification_pkey', ['id'], { unique: true })
+@Index('account_post_composite_pkey', ['account', 'post'], { unique: true })
 @Entity('notification', { schema: 'public' })
 export class Notification {
   @PrimaryGeneratedColumn({ type: 'integer', name: 'id' })

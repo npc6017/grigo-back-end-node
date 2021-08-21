@@ -10,8 +10,14 @@ import { Post } from './Post';
 import { Tag } from './Tag';
 
 @Index('post_tag_pkey', ['id'], { unique: true })
+@Index('post_tag_composite_pkey', ['post', 'tag'], { unique: true })
 @Entity('post_tag', { schema: 'public' })
 export class PostTag {
+  constructor(newPost: Post, tag: Tag) {
+      this.post = newPost,
+      this.tag = tag
+  }
+
   @PrimaryGeneratedColumn({ type: 'integer', name: 'id' })
   id: number;
 
