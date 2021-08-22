@@ -12,7 +12,6 @@ import { TagService } from '../tag/tag.service';
 export class AccountService {
   constructor(
     @InjectRepository(Account) private accountRepository: Repository<Account>,
-    private tagService: TagService,
   ) {}
   async findByEmail(email: string): Promise<Account> {
     // return await this.accountRepository.findOne({ email: email });
@@ -76,13 +75,7 @@ export class AccountService {
       .execute();
   }
   /** Set My Profile */
-  async setMyProfile(email, body): Promise<void> {
-    const account = await this.findByEmail(email);
-    /// Add Tags
-    await this.tagService.setMyTags(body.addTags, account);
-    // Delete Tags
-    const deleteTagObjs = await this.tagService.getTagObject(body.deletedTags);
-    await this.tagService.deleteAccountTags(deleteTagObjs, account);
+  async setMyProfile(account: Account, body): Promise<void> {
     // Set Phone, Birth
     account.birth = body.birth;
     account.phone = body.phone;

@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Tag } from '../entities/Tag';
 import { Repository } from 'typeorm';
 import { AccountTag } from '../entities/AccountTag';
-import { AccountService } from '../account/account.service';
 import { Account } from '../entities/Account';
 
 @Injectable()

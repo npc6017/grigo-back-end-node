@@ -24,7 +24,7 @@ dotenv.config();
       signOptions: { expiresIn: process.env.TIMEOUT },
     }),
   ],
-  providers: [AuthService, AccountService, LocalStrategy, JwtStrategy, TagService],
+  providers: [AuthService, AccountService, LocalStrategy, JwtStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

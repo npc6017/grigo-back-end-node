@@ -2,7 +2,7 @@ import {
   Body,
   Controller,
   Get,
-  HttpException, HttpStatus,
+  HttpException,
   Post,
   Request,
   Response,
@@ -22,6 +22,7 @@ export class AccountController {
   constructor(
     private accountService: AccountService,
     private authService: AuthService,
+    private tagService: TagService,
   ) {}
 
   /** JOIN */
@@ -106,7 +107,13 @@ export class AccountController {
   @UseGuards(JwtAuthGuard)
   @Post('/settings/profile')
   async setMyProfile(@Request() request, @Body() body): Promise<ProfileDto> {
-    await this.accountService.setMyProfile(request.user.email, body);
+    const account = await this.accountService.findByEmail(request.user.email);
+    await this.accountService.setMyProfile(account, body);
+    /// Add Tags
+    await this.tagService.setMyTags(body.addTags, account);
+    /// Delete Tags
+    const deleteTagObjs = await this.tagService.getTagObject(body.deletedTags);
+    await this.tagService.deleteAccountTags(deleteTagObjs, account);
     return await this.accountService.getMyProfile(request.user.email); // 사용자 Full 정보
   }
 
