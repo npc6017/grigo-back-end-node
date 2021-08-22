@@ -11,5 +11,6 @@ import { AccountService } from '../account/account.service';
   imports: [TypeOrmModule.forFeature([AccountTag, Tag, Account])],
   providers: [TagService, AccountService],
   controllers: [TagController],
+  exports: [TagService],
 })
 export class TagModule {}

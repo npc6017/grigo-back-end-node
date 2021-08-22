@@ -22,16 +22,7 @@ export class PostService {
     @InjectRepository(AccountTag)
     private accountTagRepository: Repository<AccountTag>,
   ) {}
-  /** StringTag To TagObject **/
-  async getTagObject(tags: string[]): Promise<Tag[]> {
-    const tagObjs: Tag[] = [];
-    await Promise.all( tags.map(async (tag) => {
-        const isTag = await this.tagRepository.findOne({ name: tag });
-        if(isTag) tagObjs.push(isTag);
-      }),
-    );
-    return tagObjs;
-  }
+
   /** Save Post */
   async createPost(email: string, post: RequestPostDto): Promise<void> {
     // 계정 받아오기
@@ -46,7 +37,7 @@ export class PostService {
 
     /** PostTag에 추가, 게시글과 태그 연결 */
     /// 스트링 배열 태그로 디비에서 태크 데이터 가져오기
-    const tagObjs = await this.getTagObject(post.tags);
+    const tagObjs = await this.tagService.getTagObject(post.tags);
     // 태그 추가 작업을 동기 처리할 필요 없기 때문에 await X
     tagObjs.map((tag) => {
       // 이번엔 한방쿼리 X 단일 쿼리 반복
@@ -168,7 +159,9 @@ export class PostService {
     // Post Tags Update
     if (updatePost.addTags) {
       const newPostTag: PostTag[] = [];
-      const tagObjs = await this.getTagObject(updatePost.addTags);
+      const tagObjs = await this.tagService.getTagObject(
+        updatePost.addTags,
+      );
       await Promise.all(
         tagObjs.map(async (tag) => {
           const exTag = await this.postTagRepository.findOne({
@@ -180,7 +173,9 @@ export class PostService {
       await this.postTagRepository.save(newPostTag);
     }
     if (updatePost.deletedTags) {
-      const tagObjs = await this.getTagObject(updatePost.deletedTags);
+      const tagObjs = await this.tagService.getTagObject(
+        updatePost.deletedTags,
+      );
       tagObjs.map((tag) => {
         this.postTagRepository.delete({
           post: post,
@@ -191,6 +186,10 @@ export class PostService {
   }
   /** Delete Post */
   async deletePost(postId: string): Promise<void> {
-    await this.postRepository.createQueryBuilder().delete().whereInIds(postId).execute();
+    await this.postRepository
+      .createQueryBuilder()
+      .delete()
+      .whereInIds(postId)
+      .execute();
   }
 }
