@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   HttpException,
+  Param,
   Post,
   Request,
   Response,
@@ -14,14 +15,19 @@ import { ResponseDTO } from './dto/responst.dto.will.delete';
 import { LocalAuthGuard } from '../auth/local-auth.guard';
 import { AuthService } from '../auth/auth.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { ProfileDto } from './dto/profile.dto';
+import { TagService } from '../tag/tag.service';
+import { NotificationDto } from './dto/notification.dto';
 
 @Controller('/')
 export class AccountController {
   constructor(
     private accountService: AccountService,
     private authService: AuthService,
+    private tagService: TagService,
   ) {}
 
+  /** JOIN */
   @Post('/join')
   async join(@Body() account: JoinRequestDto): Promise<string | ResponseDTO> {
     /** Check isUser(email) */
@@ -71,7 +77,7 @@ export class AccountController {
         );
       });
   }
-
+  /** Login */
   @UseGuards(LocalAuthGuard)
   @Post('/login')
   async login(
@@ -80,15 +86,54 @@ export class AccountController {
     @Body('email') email,
   ): Promise<string> {
     const token = await this.authService.login(email); // Token 생성
-    const account = await this.accountService.login(email); // 사용자 Full 정보
+    const account = await this.accountService.getMyProfile(email); // 사용자 Full 정보
     res.setHeader('authorization', token);
 
-    return res.json(account);
     // TODO 계정의 태그 유무 확인 후
-    /// 있으면 214 응답
-    /// 없으면 213 응답
+    /// 없으면 214 응답
+    if( account.tags.length == 0) {
+      res.status(214);
+      return res.json(account);
+    }
+    /// 있으면 213 응답
+    res.status(213);
+    return res.json(account);
+  }
+  /** Get Profile */
+  @UseGuards(JwtAuthGuard)
+  @Get('/profile')
+  async getMyProfile(@Request() request): Promise<ProfileDto> {
+    return await this.accountService.getMyProfile(request.user.email); // 사용자 Full 정보
+  }
+  /** Set Profile */
+  @UseGuards(JwtAuthGuard)
+  @Post('/settings/profile')
+  async setMyProfile(@Request() request, @Body() body): Promise<ProfileDto> {
+    const account = await this.accountService.findByEmail(request.user.email);
+    await this.accountService.setMyProfile(account, body);
+    /// Add Tags
+    await this.tagService.setMyTags(body.addTags, account);
+    /// Delete Tags
+    const deleteTagObjs = await this.tagService.getTagObject(body.deletedTags);
+    await this.tagService.deleteAccountTags(deleteTagObjs, account);
+    return await this.accountService.getMyProfile(request.user.email); // 사용자 Full 정보
+  }
+  /** Get Notification */
+  @UseGuards(JwtAuthGuard)
+  @Get('/notification')
+  async getMyNotification(@Request() request): Promise<NotificationDto[]> {
+    const account = await this.accountService.findByEmail(request.user.email);
+    return await this.accountService.getMyNotification(account);
+  }
+  /** Read Notification */
+  @UseGuards(JwtAuthGuard)
+  @Get('/notification/:postId')
+  async readNotification(@Request() request, @Param('postId') postId: number): Promise<void> {
+    const account = await this.accountService.findByEmail(request.user.email);
+    await this.accountService.readNotification(account, postId);
   }
 
+  /** JWT TEST */
   @UseGuards(JwtAuthGuard)
   @Get('/test')
   test(@Request() req): string {

@@ -4,20 +4,52 @@ import { Account } from '../entities/Account';
 import { Repository } from 'typeorm';
 import { JoinRequestDto } from './dto/join.dto';
 import * as bcrypt from 'bcrypt';
+import { AccountTag } from '../entities/AccountTag';
+import { ProfileDto } from './dto/profile.dto';
+import { Notification } from '../entities/Notification';
+import { NotificationDto } from './dto/notification.dto';
 
 @Injectable()
 export class AccountService {
   constructor(
     @InjectRepository(Account) private accountRepository: Repository<Account>,
+    @InjectRepository(Notification) private notificationRepository: Repository<Notification>,
   ) {}
   async findByEmail(email: string): Promise<Account> {
-    // return await this.accountRepository.findOne({ email: email });
     return await this.accountRepository.findOne({ email: email });
   }
   async findByStudentId(student_id: number): Promise<Account> {
     return await this.accountRepository.findOne({ studentId: student_id });
   }
-
+  /** TagObject To String[] **/
+  tagToString(tagObjs: AccountTag[]): string[] {
+    const stringTags: string[] = [];
+    tagObjs.map((tag) => {
+      stringTags.push(tag.tag.name);
+    });
+    return stringTags;
+  }
+  /** Profile DTO Mapper **/
+  profileDtoMapper(account: Account, stringTags: string[]): ProfileDto {
+    return new ProfileDto( account.email, account.name, account.studentId, account.phone, account.birth, account.sex, stringTags);
+  }
+  /** Set Check Notice true **/
+  async setAccountCheckNotice(accountIds: number[]) {
+    await this.accountRepository
+      .createQueryBuilder()
+      .update({ checkNotice: true })
+      .whereInIds(accountIds)
+      .execute();
+  }
+  /** Set Check Notice false **/
+  async setAccountCheckNoticeToFalse(accountIds: number) {
+    await this.accountRepository
+      .createQueryBuilder()
+      .update({ checkNotice: false })
+      .whereInIds(accountIds)
+      .execute();
+  }
+  /** Join */
   async join(account: JoinRequestDto) {
     const hashedPassword = await bcrypt.hash(account.password, 12);
     await this.accountRepository.save({
@@ -30,18 +62,8 @@ export class AccountService {
       phone: account.phone,
     });
   }
-
-  async login(email): Promise<{
-    checkNotice: boolean;
-    phone: string;
-    sex: string;
-    name: string;
-    student_id: number;
-    birth: string;
-    email: string;
-    tags: string[];
-  }> {
-    const stringTags: string[] = [];
+  /** Login */
+  async getMyProfile(email): Promise<ProfileDto> {
     const account = await this.accountRepository
       .createQueryBuilder('account')
       .where('account.email =:email', { email: email })
@@ -57,28 +79,53 @@ export class AccountService {
       .leftJoinAndSelect('account.accountTags', 'accountTags')
       .leftJoinAndSelect('accountTags.tag', 'tags')
       .getOne();
-    account.accountTags.map((tag) => {
-      stringTags.push(tag.tag.name);
-    });
-    const result = {
-      /** 기존 응답 데이터 형식을 이상하게 잡아서.. 나중에 맵퍼로 빼야지 */
-      email: account.email,
-      name: account.name,
-      student_id: account.studentId,
-      phone: account.phone,
-      birth: account.birth,
-      sex: account.sex,
-      checkNotice: account.checkNotice,
-      tags: stringTags,
-    };
+    const stringTags: string[] = this.tagToString(account.accountTags);
+    const result = this.profileDtoMapper(account, stringTags);
+    return result;
+  }
+  /** Set My Profile */
+  async setMyProfile(account: Account, body): Promise<void> {
+    // Set Phone, Birth
+    account.birth = body.birth;
+    account.phone = body.phone;
+    await this.accountRepository.save(account);
+  }
+
+  /** Get My Notification */
+  async getMyNotification(account: Account): Promise<NotificationDto[]> {
+    const notifications = await this.notificationRepository
+      .createQueryBuilder('notification')
+      .select()
+      .where('notification.account_id =:id', { id: account.id })
+      .leftJoinAndSelect('notification.post', 'post')
+      .getMany();
+    const result = notifications.map((notification) =>
+        new NotificationDto(
+          notification.id,
+          notification.post.id,
+          notification.post.title,
+        ),
+    );
     return result;
   }
 
-  async setAccountCheckNotice(accountIds: number[]) {
-    await this.accountRepository
-      .createQueryBuilder()
-      .update({ checkNotice: true })
-      .whereInIds(accountIds)
+  /** Read Notification */
+  async readNotification(account: Account, postId: number): Promise<void> {
+    await this.notificationRepository
+      .createQueryBuilder('notification')
+      .delete()
+      .where(
+        'notification.post_id =:postId and notification.account_id =:accountId',
+        {
+          postId: postId,
+          accountId: account.id,
+        },
+      )
       .execute();
+    const count = await this.notificationRepository
+      .createQueryBuilder('notification')
+      .where('notification.account_id =:accountId', { accountId: account.id, })
+      .getCount();
+    if (count == 0) await this.setAccountCheckNoticeToFalse(account.id);
   }
 }
