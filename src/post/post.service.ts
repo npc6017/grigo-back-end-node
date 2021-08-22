@@ -10,6 +10,7 @@ import { AccountService } from '../account/account.service';
 import { Tag } from '../entities/Tag';
 import { ResponsePostDTO } from './dto/response.post.dto';
 import { UpdatePostDto } from './dto/update.post.dto';
+import { Notification } from '../entities/Notification';
 
 @Injectable()
 export class PostService {
@@ -21,6 +22,8 @@ export class PostService {
     @InjectRepository(Tag) private tagRepository: Repository<Tag>,
     @InjectRepository(AccountTag)
     private accountTagRepository: Repository<AccountTag>,
+    @InjectRepository(Notification)
+    private notificationRepository: Repository<Notification>,
   ) {}
 
   /** Save Post */
@@ -63,6 +66,7 @@ export class PostService {
     accounts.map((ac) => {
       ac.map((a) => {
         if (!accountIds.includes(a.account.id)) {
+          this.notificationRepository.save({ account: a.account, post: newPost });
           accountIds.push(a.account.id);
         }
       });

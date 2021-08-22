@@ -6,9 +6,10 @@ import { Account } from '../entities/Account';
 import { AccountTag } from '../entities/AccountTag';
 import { Tag } from '../entities/Tag';
 import { AccountService } from '../account/account.service';
+import { Notification } from '../entities/Notification';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([AccountTag, Tag, Account])],
+  imports: [TypeOrmModule.forFeature([AccountTag, Tag, Account, Notification])],
   providers: [TagService, AccountService],
   controllers: [TagController],
   exports: [TagService],

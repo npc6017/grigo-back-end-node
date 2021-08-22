@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   HttpException,
+  Param,
   Post,
   Request,
   Response,
@@ -16,6 +17,7 @@ import { AuthService } from '../auth/auth.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ProfileDto } from './dto/profile.dto';
 import { TagService } from '../tag/tag.service';
+import { NotificationDto } from './dto/notification.dto';
 
 @Controller('/')
 export class AccountController {
@@ -115,6 +117,20 @@ export class AccountController {
     const deleteTagObjs = await this.tagService.getTagObject(body.deletedTags);
     await this.tagService.deleteAccountTags(deleteTagObjs, account);
     return await this.accountService.getMyProfile(request.user.email); // 사용자 Full 정보
+  }
+  /** Get Notification */
+  @UseGuards(JwtAuthGuard)
+  @Get('/notification')
+  async getMyNotification(@Request() request): Promise<NotificationDto[]> {
+    const account = await this.accountService.findByEmail(request.user.email);
+    return await this.accountService.getMyNotification(account);
+  }
+  /** Read Notification */
+  @UseGuards(JwtAuthGuard)
+  @Get('/notification/:postId')
+  async readNotification(@Request() request, @Param('postId') postId: number): Promise<void> {
+    const account = await this.accountService.findByEmail(request.user.email);
+    await this.accountService.readNotification(account, postId);
   }
 
   /** JWT TEST */

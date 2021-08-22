@@ -9,12 +9,13 @@ import * as dotenv from 'dotenv';
 import { TagService } from '../tag/tag.service';
 import { Tag } from '../entities/Tag';
 import { AccountTag } from '../entities/AccountTag';
+import { Notification } from '../entities/Notification';
 
 dotenv.config();
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Account, Tag, AccountTag]),
+    TypeOrmModule.forFeature([Account, Tag, AccountTag, Notification]),
     JwtModule.register({
       secret: process.env.SECRET,
       signOptions: { expiresIn: process.env.TIMEOUT },
