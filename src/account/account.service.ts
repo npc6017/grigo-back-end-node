@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UseGuards } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Account } from '../entities/Account';
 import { Repository } from 'typeorm';
@@ -13,7 +13,8 @@ import { NotificationDto } from './dto/notification.dto';
 export class AccountService {
   constructor(
     @InjectRepository(Account) private accountRepository: Repository<Account>,
-    @InjectRepository(Notification) private notificationRepository: Repository<Notification>,
+    @InjectRepository(Notification)
+    private notificationRepository: Repository<Notification>,
   ) {}
   async findByEmail(email: string): Promise<Account> {
     return await this.accountRepository.findOne({ email: email });
@@ -31,7 +32,15 @@ export class AccountService {
   }
   /** Profile DTO Mapper **/
   profileDtoMapper(account: Account, stringTags: string[]): ProfileDto {
-    return new ProfileDto( account.email, account.name, account.studentId, account.phone, account.birth, account.sex, stringTags);
+    return new ProfileDto(
+      account.email,
+      account.name,
+      account.studentId,
+      account.phone,
+      account.birth,
+      account.sex,
+      stringTags,
+    );
   }
   /** Set Check Notice true **/
   async setAccountCheckNotice(accountIds: number[]) {
@@ -99,7 +108,8 @@ export class AccountService {
       .where('notification.account_id =:id', { id: account.id })
       .leftJoinAndSelect('notification.post', 'post')
       .getMany();
-    const result = notifications.map((notification) =>
+    const result = notifications.map(
+      (notification) =>
         new NotificationDto(
           notification.id,
           notification.post.id,
@@ -124,8 +134,21 @@ export class AccountService {
       .execute();
     const count = await this.notificationRepository
       .createQueryBuilder('notification')
-      .where('notification.account_id =:accountId', { accountId: account.id, })
+      .where('notification.account_id =:accountId', { accountId: account.id })
       .getCount();
     if (count == 0) await this.setAccountCheckNoticeToFalse(account.id);
+  }
+  /** Compare Password */
+  async checkCurPassword( password: string, currentPassword: string): Promise<boolean> {
+    return await bcrypt.compare(currentPassword, password.substr(8));
+  }
+  /** Update Password */
+  async updatePassword(account: Account, newPassword: string): Promise<void> {
+    const hashed = await bcrypt.hash(newPassword, 12);
+    await this.accountRepository
+      .createQueryBuilder()
+      .update({ password: `{bcrypr}${hashed}` })
+      .where(account)
+      .execute();
   }
 }

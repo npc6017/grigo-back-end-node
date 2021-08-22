@@ -118,6 +118,20 @@ export class AccountController {
     await this.tagService.deleteAccountTags(deleteTagObjs, account);
     return await this.accountService.getMyProfile(request.user.email); // 사용자 Full 정보
   }
+  /** Update Password */
+  @UseGuards(JwtAuthGuard)
+  @Post('/settings/password')
+  async updateMyPassword(@Request() req, @Body() body): Promise<ResponseDTO> {
+    const account = await this.accountService.findByEmail(req.user.email);
+    const isCurCheck = await this.accountService.checkCurPassword( account.password, body.currentPassword);
+    if (!isCurCheck)
+      return new ResponseDTO(400, '비밀번호가 일치하지 않습니다.');
+    const isNewCheck = body.newPassword == body.newPasswordConfirm;
+    if (!isNewCheck)
+      return new ResponseDTO(400, '새로운 비밀번호가 일치하지 않습니다.');
+    await this.accountService.updatePassword( account, body.newPassword);
+    return new ResponseDTO(200, '비밀번호가 성공적으로 변경되었습니다.');
+  }
   /** Get Notification */
   @UseGuards(JwtAuthGuard)
   @Get('/notification')
@@ -132,7 +146,6 @@ export class AccountController {
     const account = await this.accountService.findByEmail(request.user.email);
     await this.accountService.readNotification(account, postId);
   }
-
   /** JWT TEST */
   @UseGuards(JwtAuthGuard)
   @Get('/test')
