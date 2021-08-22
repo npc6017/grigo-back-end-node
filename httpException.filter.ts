@@ -22,5 +22,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
         errorMessage: err.message[0],
       });
     }
+    return response.json(err);
   }
 }

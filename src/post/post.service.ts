@@ -26,6 +26,14 @@ export class PostService {
     private notificationRepository: Repository<Notification>,
   ) {}
 
+  /** Find By PostId **/
+  async findByPostId(postId: number): Promise<Post> {
+    return await this.postRepository
+      .createQueryBuilder()
+      .whereInIds(postId)
+      .getOne();
+  }
+
   /** Save Post */
   async createPost(email: string, post: RequestPostDto): Promise<void> {
     // 계정 받아오기
