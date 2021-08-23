@@ -85,8 +85,8 @@ export class AccountService {
         'account.sex',
         'account.checkNotice',
       ])
-      .leftJoinAndSelect('account.accountTags', 'accountTags')
-      .leftJoinAndSelect('accountTags.tag', 'tags')
+      .innerJoinAndSelect('account.accountTags', 'accountTags')
+      .innerJoinAndSelect('accountTags.tag', 'tags')
       .getOne();
     const stringTags: string[] = this.tagToString(account.accountTags);
     const result = this.profileDtoMapper(account, stringTags);
@@ -106,7 +106,7 @@ export class AccountService {
       .createQueryBuilder('notification')
       .select()
       .where('notification.account_id =:id', { id: account.id })
-      .leftJoinAndSelect('notification.post', 'post')
+      .innerJoinAndSelect('notification.post', 'post')
       .getMany();
     const result = notifications.map(
       (notification) =>

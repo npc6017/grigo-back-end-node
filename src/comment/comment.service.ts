@@ -28,7 +28,7 @@ export class CommentService {
       .createQueryBuilder('comment')
       .select()
       .whereInIds(commentId)
-      .leftJoinAndSelect('comment.account', 'account')
+      .innerJoinAndSelect('comment.account', 'account')
       .getOne();
     if(!comment) throw new BadRequestException();
     return account.id == comment.account.id;

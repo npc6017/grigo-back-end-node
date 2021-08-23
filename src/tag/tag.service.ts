@@ -78,8 +78,8 @@ export class TagService {
     const myTags = await this.accountRepository
       .createQueryBuilder('account')
       .where('account.email =:email', { email: email })
-      .leftJoinAndSelect('account.accountTags', 'accountTags')
-      .leftJoinAndSelect('accountTags.tag', 'tags')
+      .innerJoinAndSelect('account.accountTags', 'accountTags')
+      .innerJoinAndSelect('accountTags.tag', 'tags')
       .getOne();
 
     myTags.accountTags.map((tag) => {
