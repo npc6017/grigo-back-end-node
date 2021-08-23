@@ -3,25 +3,18 @@ import { AccountService } from './account.service';
 import { AccountController } from './account.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Account } from '../entities/Account';
-import { AuthService } from '../auth/auth.service';
-import { JwtModule } from '@nestjs/jwt';
-import * as dotenv from 'dotenv';
-import { TagService } from '../tag/tag.service';
-import { Tag } from '../entities/Tag';
-import { AccountTag } from '../entities/AccountTag';
 import { Notification } from '../entities/Notification';
-
-dotenv.config();
+import { TagModule } from '../tag/tag.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Account, Tag, AccountTag, Notification]),
-    JwtModule.register({
-      secret: process.env.SECRET,
-      signOptions: { expiresIn: process.env.TIMEOUT },
-    }),
+    TypeOrmModule.forFeature([Account, Notification]),
+    TagModule,
+    AuthModule,
   ],
-  providers: [AccountService, AuthService, TagService],
+  providers: [AccountService],
   controllers: [AccountController],
+  exports: [AccountService],
 })
 export class AccountModule {}

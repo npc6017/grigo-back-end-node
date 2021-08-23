@@ -20,8 +20,6 @@ export class PostService {
     @InjectRepository(Post) private postRepository: Repository<Post>,
     @InjectRepository(PostTag) private postTagRepository: Repository<PostTag>,
     @InjectRepository(Tag) private tagRepository: Repository<Tag>,
-    @InjectRepository(AccountTag)
-    private accountTagRepository: Repository<AccountTag>,
     @InjectRepository(Notification)
     private notificationRepository: Repository<Notification>,
   ) {}
@@ -99,7 +97,7 @@ export class PostService {
   /** 게시글(여러개) 조회 */
   async getMyPosts(email: string, query) {
     const posts = await this.postRepository.find({
-      skip: query.id - 1,
+      skip: query.id == 0 ? 0 : query.id - 1,
       take: query.size,
       where: { boardType: query.type },
       relations: [
