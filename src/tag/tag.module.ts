@@ -1,16 +1,18 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TagService } from './tag.service';
 import { TagController } from './tag.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Account } from '../entities/Account';
 import { AccountTag } from '../entities/AccountTag';
 import { Tag } from '../entities/Tag';
-import { AccountService } from '../account/account.service';
-import { Notification } from '../entities/Notification';
+import { AccountModule } from '../account/account.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([AccountTag, Tag, Account, Notification])],
-  providers: [TagService, AccountService],
+  imports: [
+    TypeOrmModule.forFeature([AccountTag, Tag, Account]),
+    forwardRef(() => AccountModule),
+  ],
+  providers: [TagService],
   controllers: [TagController],
   exports: [TagService],
 })
