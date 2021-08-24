@@ -1,0 +1,1 @@
+{"version":3,"file":"notification.dto.js","sourceRoot":"","sources":["../../../../src/account/dto/notification.dto.ts"],"names":[],"mappings":";;;AAAA,MAAa,eAAe;IAC1B,YAAY,EAAU,EAAE,MAAc,EAAE,KAAa;QACnD,IAAI,CAAC,EAAE,GAAG,EAAE,CAAC;QACb,IAAI,CAAC,MAAM,GAAG,MAAM,CAAC;QACrB,IAAI,CAAC,KAAK,GAAG,KAAK,CAAC;IACrB,CAAC;CAKF;AAVD,0CAUC"}
