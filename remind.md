@@ -200,7 +200,7 @@ leftJoin은 단순히 join만 하지만, leftJoinAndSelect는 결과를 같이 �
  여기서는 첫 번째와 마찬가지로 accunt가 아닌 accountTags를 대상으로 join을 진행한다.
 
 ---
-### TypeORM Composite Primary Key
+<!-- ### TypeORM Composite Primary Key
 ```typescript
 @Index('account_tag_pkey', ['id'], { unique: true })
 @Index('account_tag_composite_pkey', ['account', 'tag'], { unique: true })
@@ -232,4 +232,4 @@ export class AccountTag {
 위 도메인은 Account - AccountTag - Tag 의 다대다 관계를  
 one to many, many to one으로 풀어서 account와 tag를 갖는 테이블이다.
 여기서 예로 account: 3, tag: 4의 데이터가 중복으로 들어가는 문제를 위해 account와 tag를 composite PK로 설정할 수 있다.  
-위 도메인 코드의 2번 라인이 해당 내용을 설정하는 부분이다.
+위 도메인 코드의 2번 라인이 해당 내용을 설정하는 부분이다. -->
